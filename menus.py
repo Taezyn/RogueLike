@@ -90,5 +90,5 @@ def command_menu(con, background_image, screen_width, screen_height):
     libtcod.console_print_ex(0, int(screen_width/2), 3, libtcod.BKGND_NONE,
                              libtcod.CENTER, 'By Crevette')
     menu(con, '', ['Deplacement avec les fleches', 'Diagonale : Y,U,B,N', 'Attraper un item : G',
-                   'Lacher un item : D', 'Prendre les escaliers > : Entree', 'Menu principal : Echap'],
+                   'Lacher un item : D', 'Prendre les escaliers > : Entree', '', 'Menu principal : Echap'],
          40, screen_width, screen_height)

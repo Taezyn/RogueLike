@@ -1,6 +1,12 @@
-import tcod as libtcod
 from game_messages import *
 from components.ai import ConfusedMonster
+import sound_manager.sound_manager as sm
+
+sound = sm.init_son()
+confuse_sounds = sound.get('confuse')
+fire_sounds = sound.get('fire')
+thunder_sounds = sound.get('thunder')
+potion_drinking_sounds = sound.get('potion_drinking')[0]
 
 
 def heal(*args, **kwargs):
@@ -10,6 +16,8 @@ def heal(*args, **kwargs):
         results.append({'consumed': False, 'message': Message('Deja full life', libtcod.yellow)})
     else:
         entity.fighter.heal()
+        potion_drinking_sound = sm.Son(potion_drinking_sounds)
+        potion_drinking_sound.playpause()
         results.append({'consumed': True, 'message': Message('25% PV rendus', libtcod.green)})
     return results
 
@@ -32,6 +40,8 @@ def cast_lightning(*args, **kwargs):
     if target:
         results.append({'consumed': True, 'target': target, 'message': Message(
                     'Un éclair inflige {0} a {1} !'.format(damage, target.name))})
+        thunder_sound = sm.choose_sound(thunder_sounds)
+        thunder_sound.playpause()
         results.extend(target.fighter.take_damage(damage))
     else:
         results.append({'consumed': False, 'target': None, 'message': Message("Pas d'enemis a portee")})
@@ -53,6 +63,8 @@ def cast_fireball(*args, **kwargs):
     for entity in entities:
         if entity.distance(target_x, target_y) <= radius and entity.fighter:
             results.append({'message': Message('{0} subit {1} degats de feu'.format(entity.name, damage), libtcod.orange)})
+            fire_sound = sm.choose_sound(fire_sounds)
+            fire_sound.playpause()
             results.extend(entity.fighter.take_damage(damage))
     return results
 
@@ -72,6 +84,8 @@ def cast_confuse(*args, **kwargs):
             confused_ai.owner = entity
             entity.ai = confused_ai
             results.append({'consumed': True, 'message': Message('{0} devient debile'.format(entity.name), libtcod.light_green)})
+            confuse_sound = sm.choose_sound(confuse_sounds)
+            confuse_sound.playpause()
             break
     else:
         results.append({'consumed': False, 'message': Message('Pas de cible', libtcod.yellow)})

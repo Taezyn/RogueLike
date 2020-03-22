@@ -1,5 +1,4 @@
 import tcod as libtcod
-
 from game_messages import Message
 
 
