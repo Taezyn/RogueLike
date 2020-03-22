@@ -1,12 +1,17 @@
 # RogueLike
 Projet informatique S2
 
-Yo, j'ai avancé sur le projet, je vais lever un peu le pied pour m'occuper du rapport de stage.
-En attendant, et en vue de la soutenance, je te suggère de prendre bien connaissance du programme et de sa structure.
 Je ferais les commentaires plus tard sur les class-fonctions-méthodes.
+A faire : 
+- Créer un loop pour les musiques de fond 
+- Trier l'inventaire (stacker les items ?)
+- Créer des boss
+- ...
 
 --- Avant de lancer le jeu ---
-Télécharge une musique de ton choix et mets la à la racine du dossier, au format .wav, en la nommant "sound", ou bien tu risques une erreur.
+Télécharger le package sound_manager.rar au lien suivant : 
+https://drive.google.com/file/d/1QoRqnRn0m8dKuj2Xk8YpXeL8tOeouQtu/view?usp=sharing
+et le décompresser à la racine du dossier.
 
 --- Pour lancer le jeu ---
 Un double clic sur engine.py suffira.
