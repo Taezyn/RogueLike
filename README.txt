@@ -3,6 +3,7 @@ Projet informatique S2 - update 22/03
 
 Je ferais les commentaires plus tard sur les class-fonctions-méthodes.
 A faire : 
+- Régler bug d'affichage Echap -> Commands -> Echap
 - Créer un loop pour les musiques de fond 
 - Trier l'inventaire (stacker les items ?)
 - Créer des boss
