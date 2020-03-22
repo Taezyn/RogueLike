@@ -1,6 +1,6 @@
 import tcod as libtcod
 from death_functions import kill_monster, kill_player
-from entity import Entity, get_blocking_entities_at_location
+from entity import Entity, get_blocking_entities_at_location, all_dead
 from fov_functions import initialize_fov, recompute_fov
 from game_messages import Message
 from game_states import GameStates
@@ -9,15 +9,17 @@ from render_functions import clear_all, render_all
 from loader_functions.initialize_new_game import get_constants, get_game_variables
 from loader_functions.data_loaders import load_game, save_game
 from menus import main_menu, message_box, command_menu
-import os
-import sound_manager as sm
+import pygame
+import sound_manager.sound_manager as sm
 
 
 def play_game(player, entities, game_map, message_log, game_state, con, panel, constants):
+    sword_sounds = constants.get('sound').get('sword')
+    hurt_sound = sm.Son(constants.get('sound').get('hurt')[0])
+    clean_stage_sound = sm.Son(constants.get('sound').get('clean_stage')[0])
+
     fov_recompute = True
     fov_map = initialize_fov(game_map)
-
-    sound_status = None
 
     key = libtcod.Key()
     mouse = libtcod.Mouse()
@@ -64,6 +66,11 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
 
         player_turn_results = []
 
+        hp80 = 0.80*player.fighter.max_hp
+        hp60 = 0.60*player.fighter.max_hp
+        hp40 = 0.40*player.fighter.max_hp
+        hp20 = 0.20*player.fighter.max_hp
+
         if move and game_state == GameStates.PLAYERS_TURN:
             dx, dy = move
             destination_x = player.x + dx
@@ -72,7 +79,13 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                 target = get_blocking_entities_at_location(entities, destination_x, destination_y)
                 if target:
                     attack_results = player.fighter.attack(target)
+                    sword = sm.choose_sound(sword_sounds)
+                    sword.playpause()
                     player_turn_results.extend(attack_results)
+                    if all_dead(entities):
+                        player.level.add_xp(0.1 * player.level.level_up_base)
+                        clean_stage_sound.playpause()
+                        message_log.add_message(Message('Plus de monstres, bonus 10% XP', libtcod.yellow))
                 else:
                     player.move(dx, dy)
                     fov_recompute = True
@@ -98,8 +111,8 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             previous_game_state = game_state
             game_state = GameStates.DROP_INVENTORY
 
-        if inventory_index is not None and previous_game_state != GameStates.PLAYER_DEAD and inventory_index < len(
-                player.inventory.items):
+        if inventory_index is not None and previous_game_state != GameStates.PLAYER_DEAD \
+                and inventory_index < len(player.inventory.items):
             item = player.inventory.items[inventory_index]
             if game_state == GameStates.SHOW_INVENTORY:
                 player_turn_results.extend(player.inventory.use(item, entities=entities, fov_map=fov_map))
@@ -146,8 +159,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             elif game_state == GameStates.TARGETING:
                 player_turn_results.append({'targeting_cancelled': True})
             else:
-                save_game(player, entities, game_map, message_log, game_state)
-                return True
+                return player, entities, game_map, message_log, game_state
 
         if fullscreen:
             libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
@@ -205,7 +217,13 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
         if game_state == GameStates.ENEMY_TURN:
             for entity in entities:
                 if entity.ai:
+                    hp_before_attack = player.fighter.hp
                     enemy_turn_results = entity.ai.take_turn(player, fov_map, game_map, entities)
+                    if (player.fighter.hp <= hp80 < hp_before_attack) \
+                            or (player.fighter.hp <= hp60 < hp_before_attack) \
+                            or (player.fighter.hp <= hp40 < hp_before_attack) \
+                            or (player.fighter.hp <= hp20 < hp_before_attack):
+                        hurt_sound.playpause()
                     for enemy_turn_result in enemy_turn_results:
                         message = enemy_turn_result.get('message')
                         dead_entity = enemy_turn_result.get('dead')
@@ -241,13 +259,13 @@ def main():
     message_log = None
     game_state = None
 
-    bg_music = sm.Son('sound.wav')
-
     show_main_menu = True
     show_load_error_message = False
     show_command_menu = False
 
     main_menu_background_image = libtcod.image_load('menu_background.png')
+
+    bg_music = sm.Son(constants.get('sound').get('background_music')[0])
 
     key = libtcod.Key()
     mouse = libtcod.Mouse()
@@ -285,6 +303,7 @@ def main():
                     show_load_error_message = True
             elif exit_game:
                 save_game(player, entities, game_map, message_log, game_state)
+                sm.close_sound()
                 break
             elif sound:
                 bg_music.playpause()
@@ -306,9 +325,10 @@ def main():
 
         else:
             libtcod.console_clear(con)
-            play_game(player, entities, game_map, message_log, game_state, con, panel, constants)
+            player, entities, game_map, message_log, game_state = play_game(player, entities, game_map, message_log, game_state, con, panel, constants)
             show_main_menu = True
 
 
 if __name__ == '__main__':
+    pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=2048)
     main()
