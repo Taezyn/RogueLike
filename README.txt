@@ -1,5 +1,5 @@
 # RogueLike
-Projet informatique S2
+Projet informatique S2 - update 22/03
 
 Je ferais les commentaires plus tard sur les class-fonctions-méthodes.
 A faire : 
@@ -9,6 +9,7 @@ A faire :
 - ...
 
 --- Avant de lancer le jeu ---
+Installer pygame : pip install pygame
 Télécharger le package sound_manager.rar au lien suivant : 
 https://drive.google.com/file/d/1QoRqnRn0m8dKuj2Xk8YpXeL8tOeouQtu/view?usp=sharing
 et le décompresser à la racine du dossier.
