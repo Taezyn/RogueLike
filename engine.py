@@ -13,8 +13,6 @@ import pygame
 import sound_manager.sound_manager as sm
 
 
-a = 1
-
 def play_game(player, entities, game_map, message_log, game_state, con, panel, constants):
     sword_sounds = constants.get('sound').get('sword')
     hurt_sound = sm.Son(constants.get('sound').get('hurt')[0])
