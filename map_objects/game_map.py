@@ -77,7 +77,6 @@ class GameMap:
                              render_order=RenderOrder.STAIRS, stairs=stairs_component)
         entities.append(down_stairs)
 
-
     def create_room(self, room):
         # go through the tiles in the rectangle and make them passable
         for x in range(room.x1 + 1, room.x2):
@@ -85,18 +84,15 @@ class GameMap:
                 self.tiles[x][y].blocked = False
                 self.tiles[x][y].block_sight = False
 
-
     def create_h_tunnel(self, x1, x2, y):
         for x in range(min(x1, x2), max(x1, x2) + 1):
             self.tiles[x][y].blocked = False
             self.tiles[x][y].block_sight = False
 
-
     def create_v_tunnel(self, y1, y2, x):
         for y in range(min(y1, y2), max(y1, y2) + 1):
             self.tiles[x][y].blocked = False
             self.tiles[x][y].block_sight = False
-
 
     def place_entities(self, room, entities):
         max_monsters_per_room = from_dungeon_level([[2, 1], [3, 4], [5, 6]], self.dungeon_level)
@@ -160,12 +156,10 @@ class GameMap:
                     item = Entity(x, y, '#', libtcod.yellow, 'Parchemin de foudre', render_order=RenderOrder.ITEM, item=item_component)
                 entities.append(item)
 
-
     def is_blocked(self, x, y):
         if self.tiles[x][y].blocked:
             return True
         return False
-
 
     def next_floor(self, player, message_log, constants):
         self.dungeon_level += 1
