@@ -24,9 +24,9 @@ Un double clic sur engine.py suffira.
 1 - Factorisation du code : au moins trois modules et noms de classes distincts
         OK largement
 2 - Documentation et commentaires du code
-        Plus tard
+        Ok
 3 - Tests unitaires : (au moins 4 méthodes avec au moins 2 cas testés par méthode)
-        Plus tard : Attente réponse du prof
+        Plus tard : Attente réponse du prof > Que quelques classes à faire
 4 - Création d'un type d’objet (classe) : il devra contenir au moins deux  variables d'instance : 
         OK largement
 
