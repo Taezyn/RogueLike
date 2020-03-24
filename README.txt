@@ -13,7 +13,7 @@ A faire :
 --- Avant de lancer le jeu ---
 Installer pygame : pip install pygame
 Télécharger le package sound_manager.rar au lien suivant : 
-https://drive.google.com/file/d/1QoRqnRn0m8dKuj2Xk8YpXeL8tOeouQtu/view?usp=sharing
+https://drive.google.com/file/d/130Jmiupva8OWfyXcN7Aq_aqCK2842gzs/view?usp=sharing
 et le décompresser à la racine du dossier.
 
 --- Pour lancer le jeu ---
