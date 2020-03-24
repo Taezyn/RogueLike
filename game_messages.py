@@ -2,6 +2,9 @@ import tcod as libtcod
 import textwrap
 
 
+# Ce module gere la boite dans laquelle les messages defilent.
+
+
 class Message:
     def __init__(self, text, color=libtcod.white):
         self.text = text
@@ -15,12 +18,11 @@ class MessageLog:
         self.width = width
         self.height = height
 
+    # Ajoute un message a la boite des messages, coupe un message trop long pour l'afficher
+    # sur plusieurs lignes si besoin
     def add_message(self, message):
-        # Split the message if necessary, among multiple lines
         new_msg_lines = textwrap.wrap(message.text, self.width)
         for line in new_msg_lines:
-            # If the buffer is full, remove the first line to make room for the new one
             if len(self.messages) == self.height:
                 del self.messages[0]
-            # Add the new line as a Message object, with the text and the color
             self.messages.append(Message(line, message.color))

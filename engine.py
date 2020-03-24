@@ -13,6 +13,113 @@ import pygame
 import sound_manager.sound_manager as sm
 
 
+#############################################################################################################
+# Petit - Pedreno, groupe TD5, projet Roguelike
+#############################################################################################################
+# Pour le bon fonctionnement du jeu, il faut prendre soin d'installer ces modules
+# pyagme : pip install pygame
+# libtcod : pip install tcod
+# shelve : pip install shelve
+# Il est egalement necessaire de telecharger le package sound_manager a placer
+# a la racine du dossier : https://drive.google.com/file/d/1QoRqnRn0m8dKuj2Xk8YpXeL8tOeouQtu/view?usp=sharing
+#############################################################################################################
+# Ce module gere l'execution du jeu dans son ensemble.
+# Les explications seront donnees au sein meme des fonction afin
+# de conserver une vision globale des choses.
+#############################################################################################################
+
+
+def main():
+    # Initialise le jeu en commencant par afficher le menu principal
+    constants = get_constants()
+
+    libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
+
+    libtcod.console_init_root(constants['screen_width'], constants['screen_height'], "Rogue doesn't like", False)
+
+    con = libtcod.console_new(constants['screen_width'], constants['screen_height'])
+    panel = libtcod.console_new(constants['screen_width'], constants['panel_height'])
+
+    player = None
+    entities = []
+    game_map = None
+    message_log = None
+    game_state = None
+
+    show_main_menu = True
+    show_load_error_message = False
+    show_command_menu = False
+
+    main_menu_background_image = libtcod.image_load('menu_background.png')
+
+    bg_music = sm.Son(constants.get('sound').get('background_music')[0])
+
+    key = libtcod.Key()
+    mouse = libtcod.Mouse()
+
+    while not libtcod.console_is_window_closed():
+        libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
+        # Si le menu principal est affiche :
+        if show_main_menu:
+            main_menu(con, main_menu_background_image, constants['screen_width'], constants['screen_height'])
+            if show_load_error_message:
+                message_box(con, 'Rien a charger', 70, constants['screen_width'], constants['screen_height'])
+
+            libtcod.console_flush()
+
+            action = handle_main_menu(key)
+
+            new_game = action.get('new_game')
+            load_saved_game = action.get('load_game')
+            exit_game = action.get('exit')
+            sound = action.get('sound')
+            command = action.get('command')
+            back_to_game = action.get('back_to_game')
+
+            if show_load_error_message and (new_game or load_saved_game or exit_game):
+                show_load_error_message = False
+            # Cree une nouvelle partie
+            elif new_game:
+                player, entities, game_map, message_log, game_state = get_game_variables(constants)
+                game_state = GameStates.PLAYERS_TURN
+                show_main_menu = False
+            # Charge une partie existante, si possible
+            elif load_saved_game:
+                try:
+                    player, entities, game_map, message_log, game_state = load_game()
+                    show_main_menu = False
+                except FileNotFoundError:
+                    show_load_error_message = True
+            elif exit_game:
+                save_game(player, entities, game_map, message_log, game_state)
+                sm.close_sound()
+                break
+            # Lit ou arrete la musique de fond
+            elif sound:
+                bg_music.playpause()
+            elif command:
+                show_command_menu = True
+                show_main_menu = False
+            elif back_to_game and show_main_menu:
+                show_main_menu = False
+
+        elif show_command_menu:
+            action = handle_main_menu(key)
+            command_menu(con, main_menu_background_image, constants['screen_width'], constants['screen_height'])
+            libtcod.console_flush()
+            back_to_game = action.get('back_to_game')
+            if back_to_game:
+                show_main_menu = False
+                show_command_menu = False
+                libtcod.console_clear(con)
+
+        # Lance une partie
+        else:
+            libtcod.console_clear(con)
+            player, entities, game_map, message_log, game_state = play_game(player, entities, game_map, message_log, game_state, con, panel, constants)
+            show_main_menu = True
+
+
 def play_game(player, entities, game_map, message_log, game_state, con, panel, constants):
     sword_sounds = constants.get('sound').get('sword')
     hurt_sound = sm.Son(constants.get('sound').get('hurt')[0])
@@ -35,7 +142,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
         if fov_recompute:
             recompute_fov(fov_map, player.x, player.y, constants['fov_radius'], constants['fov_light_walls'],
                           constants['fov_algorithm'])
-
+        # Affiche la carte generee
         render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log,
                    constants['screen_width'], constants['screen_height'], constants['bar_width'],
                    constants['panel_height'], constants['panel_y'], mouse, constants['colors'], game_state)
@@ -49,6 +156,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
         action = handle_keys(key, game_state)
         mouse_action = handle_mouse(mouse)
 
+        # Lit les touches pressees pour en deduire quoi faire
         move = action.get('move')
         wait = action.get('wait')
         pickup = action.get('pickup')
@@ -71,6 +179,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
         hp40 = 0.40*player.fighter.max_hp
         hp20 = 0.20*player.fighter.max_hp
 
+        # Si c'est au joueur et qu'il presse une touche de deplacement
         if move and game_state == GameStates.PLAYERS_TURN:
             dx, dy = move
             destination_x = player.x + dx
@@ -91,9 +200,11 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                     fov_recompute = True
                 game_state = GameStates.ENEMY_TURN
 
+        # Si le joueur passe son tour
         elif wait:
             game_state = GameStates.ENEMY_TURN
 
+        # Si le joueur ramasse un objet
         elif pickup and game_state == GameStates.PLAYERS_TURN:
             for entity in entities:
                 if entity.item and entity.x == player.x and entity.y == player.y:
@@ -103,14 +214,17 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             else:
                 message_log.add_message(Message('Rien a ramasser', libtcod.yellow))
 
+        # Si le joueur consulte son inventaire
         if show_inventory:
             previous_game_state = game_state
             game_state = GameStates.SHOW_INVENTORY
 
+        # Si le joueur souhaite jeter un item
         if drop_inventory:
             previous_game_state = game_state
             game_state = GameStates.DROP_INVENTORY
 
+        # Si le joueur est dans son inventaire : que faire pour utiliser ou jetter un item
         if inventory_index is not None and previous_game_state != GameStates.PLAYER_DEAD \
                 and inventory_index < len(player.inventory.items):
             item = player.inventory.items[inventory_index]
@@ -119,6 +233,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             elif game_state == GameStates.DROP_INVENTORY:
                 player_turn_results.extend(player.inventory.drop_item(item))
 
+        # Passage au niveau suivant
         if take_stairs and game_state == GameStates.PLAYERS_TURN:
             for entity in entities:
                 if entity.stairs and entity.x == player.x and entity.y == player.y:
@@ -144,6 +259,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             previous_game_state = game_state
             game_state = GameStates.CHARACTER_SCREEN
 
+        # Si le joueur est en train de cibler avec un parchemin
         if game_state == GameStates.TARGETING:
             if left_click:
                 target_x, target_y = left_click
@@ -164,6 +280,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
         if fullscreen:
             libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
 
+        # Execute l'entree precedente
         for player_turn_result in player_turn_results:
             message = player_turn_result.get('message')
             dead_entity = player_turn_result.get('dead')
@@ -214,6 +331,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                     previous_game_state = game_state
                     game_state = GameStates.LEVEL_UP
 
+        # Gere le tour des enemis : parcours toutes les entites et fait jouer les fighter ai
         if game_state == GameStates.ENEMY_TURN:
             for entity in entities:
                 if entity.ai:
@@ -242,91 +360,6 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             else:
                 game_state = GameStates.PLAYERS_TURN
 
-
-def main():
-    constants = get_constants()
-
-    libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
-
-    libtcod.console_init_root(constants['screen_width'], constants['screen_height'], "Rogue doesn't like", False)
-
-    con = libtcod.console_new(constants['screen_width'], constants['screen_height'])
-    panel = libtcod.console_new(constants['screen_width'], constants['panel_height'])
-
-    player = None
-    entities = []
-    game_map = None
-    message_log = None
-    game_state = None
-
-    show_main_menu = True
-    show_load_error_message = False
-    show_command_menu = False
-
-    main_menu_background_image = libtcod.image_load('menu_background.png')
-
-    bg_music = sm.Son(constants.get('sound').get('background_music')[0])
-
-    key = libtcod.Key()
-    mouse = libtcod.Mouse()
-
-    while not libtcod.console_is_window_closed():
-        libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
-
-        if show_main_menu:
-            main_menu(con, main_menu_background_image, constants['screen_width'], constants['screen_height'])
-            if show_load_error_message:
-                message_box(con, 'Rien a charger', 70, constants['screen_width'], constants['screen_height'])
-
-            libtcod.console_flush()
-
-            action = handle_main_menu(key)
-
-            new_game = action.get('new_game')
-            load_saved_game = action.get('load_game')
-            exit_game = action.get('exit')
-            sound = action.get('sound')
-            command = action.get('command')
-            back_to_game = action.get('back_to_game')
-
-            if show_load_error_message and (new_game or load_saved_game or exit_game):
-                show_load_error_message = False
-            elif new_game:
-                player, entities, game_map, message_log, game_state = get_game_variables(constants)
-                game_state = GameStates.PLAYERS_TURN
-                show_main_menu = False
-            elif load_saved_game:
-                try:
-                    player, entities, game_map, message_log, game_state = load_game()
-                    show_main_menu = False
-                except FileNotFoundError:
-                    show_load_error_message = True
-            elif exit_game:
-                save_game(player, entities, game_map, message_log, game_state)
-                sm.close_sound()
-                break
-            elif sound:
-                bg_music.playpause()
-            elif command:
-                show_command_menu = True
-                show_main_menu = False
-            elif back_to_game and show_main_menu:
-                show_main_menu = False
-
-        elif show_command_menu:
-            action = handle_main_menu(key)
-            command_menu(con, main_menu_background_image, constants['screen_width'], constants['screen_height'])
-            libtcod.console_flush()
-            back_to_game = action.get('back_to_game')
-            if back_to_game:
-                show_main_menu = True
-                show_command_menu = False
-                libtcod.console_clear(con)
-
-        else:
-            libtcod.console_clear(con)
-            player, entities, game_map, message_log, game_state = play_game(player, entities, game_map, message_log, game_state, con, panel, constants)
-            show_main_menu = True
 
 
 if __name__ == '__main__':

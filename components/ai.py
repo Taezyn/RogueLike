@@ -3,7 +3,12 @@ from random import randint
 from game_messages import Message
 
 
+# Module definissant les différents comportements des monstres.
+
+
 class BasicMonster:
+    # Comportement d'un monstre stantard : si il voit le joueur il se deplace jusqu'a 2 cases de lui
+    # S'il est a une case il l'attaque, sinon il ne fait rien
     def take_turn(self, target, fov_map, game_map, entities):
         results = []
         monster = self.owner
@@ -21,6 +26,8 @@ class ConfusedMonster:
         self.previous_ai = previous_ai
         self.number_of_turns = number_of_turns
 
+    # Comportement d'un monstre confus par un parchemin : mouvement aleatoire autour de sa position
+    # durant un nombre de tour donne
     def take_turn(self, target, fov_map, game_map, entities):
         results = []
         if self.number_of_turns > 0:

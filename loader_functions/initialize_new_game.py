@@ -10,6 +10,11 @@ from render_functions import RenderOrder
 import sound_manager.sound_manager as sm
 
 
+# C'est ici que peuvent etre modifiees toutes les constantes liees a l'affichage,
+# a la difficulte du jeu, a la taille de la carte, etc...
+# get_constants est appelee a l'ouverture du jeu suive de get_game_variables
+
+
 def get_constants():
     window_title = "Rogue doesn't like"
 
@@ -70,8 +75,8 @@ def get_constants():
         'colors': colors,
         'sound': sons
     }
-
     return constants
+
 
 def get_game_variables(constants):
     fighter_component = Fighter(hp=100, defense=2, power=5)

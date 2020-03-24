@@ -9,6 +9,9 @@ thunder_sounds = sound.get('thunder')
 potion_drinking_sounds = sound.get('potion_drinking')[0]
 
 
+# Definit les comportements des items lorsqu'ils sont utilises
+
+# Potion de soin : restaure un quart de la vie
 def heal(*args, **kwargs):
     entity = args[0]
     results = []
@@ -22,6 +25,7 @@ def heal(*args, **kwargs):
     return results
 
 
+# Parchemin de foudre : inflige des degats a la cible la plus proche
 def cast_lightning(*args, **kwargs):
     caster = args[0]
     entities = kwargs.get('entities')
@@ -48,6 +52,8 @@ def cast_lightning(*args, **kwargs):
     return results
 
 
+# Parchemin de feu : tire une boule de feu qui explose d'un rayon donne a
+# l'endroit choisi avec la souris. Touche aussi le joueur
 def cast_fireball(*args, **kwargs):
     entities = kwargs.get('entities')
     fov_map = kwargs.get('fov_map')
@@ -69,6 +75,7 @@ def cast_fireball(*args, **kwargs):
     return results
 
 
+# Parchemin de confusion
 def cast_confuse(*args, **kwargs):
     entities = kwargs.get('entities')
     fov_map = kwargs.get('fov_map')

@@ -1,6 +1,11 @@
 from random import randint
 
 
+# Ce module gere le taux d'apparation de monstres et d'items
+# en fonction de l'etage du donjon en assignant un poids au nombre
+# d'apparition en fonction de l'etage
+
+
 def from_dungeon_level(table, dungeon_level):
     for (value, level) in reversed(table):
         if dungeon_level >= level:

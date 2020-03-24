@@ -2,11 +2,15 @@ import tcod as libtcod
 from game_messages import Message
 
 
+# Definit la classe inventaire comme une liste d'une longueur inferieure a un montant donne
+
+
 class Inventory:
     def __init__(self, capacity):
         self.capacity = capacity
         self.items = []
 
+    # Ajoute un item à la fin de l'inventaire s'il reste de la place
     def add_item(self, item):
         results = []
         if len(self.items) >= self.capacity:
@@ -22,6 +26,7 @@ class Inventory:
             self.items.append(item)
         return results
 
+    # Utilise un item de l'inventaire
     def use(self, item_entity, **kwargs):
         results = []
         item_component = item_entity.item
@@ -39,9 +44,11 @@ class Inventory:
                 results.extend(item_use_results)
         return results
 
+    # Supprime un item utilise
     def remove_item(self, item):
         self.items.remove(item)
 
+    # Pose un item au sol sans l'utiliser
     def drop_item(self, item):
         results = []
         item.x = self.owner.x
