@@ -5,7 +5,6 @@ Je ferais les commentaires plus tard sur les class-fonctions-méthodes.
 A faire : 
 - Ecrire quelques tests unitaires
 - Meilleur score
-- Régler bug d'affichage Echap -> Commands -> Echap
 - Créer un loop pour les musiques de fond 
 - Trier l'inventaire (stacker les items ?)
 - Créer des boss
