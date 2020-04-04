@@ -2,9 +2,9 @@ import tcod as libtcod
 import math
 from render_functions import RenderOrder
 
-
-# Tous les objets python intervenant dans le jeu sont definis comme des entites, sauf le sol
-
+'''
+Tous les objets python intervenant dans le jeu sont definis comme des entites, sauf le sol
+'''
 
 class Entity:
     def __init__(self, x, y, char, color, name, blocks=False, render_order=RenderOrder.CORPSE, fighter=None, ai=None,
@@ -23,7 +23,7 @@ class Entity:
         self.stairs = stairs
         self.level = level
 
-        # Les if suivants permettent de rapporter faire le lien entre un objet (ai, fighter, etc...)
+        # Les if suivants permettent de faire le lien entre un objet (ai, fighter, etc...)
         # et la classe entite a laquelle l'objet repond egalement
 
         if self.fighter:
@@ -39,13 +39,17 @@ class Entity:
         if self.level:
             self.level.owner = self
 
-    # Fait bouger une entite mobile
+    '''
+    Fait bouger une entite mobile
+    '''
     def move(self, dx, dy):
         self.x += dx
         self.y += dy
 
-    # Fait avancer une entite mobile vers une cible si elle n'est pas bloquee
-    # par le decor ou une autre entite
+    '''
+    Fait avancer une entite mobile vers une cible si elle
+    n'est pas bloquee par le decor ou une autre entite
+    '''
     def move_towards(self, target_x, target_y, game_map, entities):
         dx = target_x - self.x
         dy = target_y - self.y
@@ -56,16 +60,25 @@ class Entity:
                 get_blocking_entities_at_location(entities, self.x + dx, self.y + dy)):
             self.move(dx, dy)
 
+    '''
+    Renvoie la distance entre deux entites
+    '''
     def distance_to(self, other):
         dx = other.x - self.x
         dy = other.y - self.y
         return math.sqrt(dx ** 2 + dy ** 2)
 
+    '''
+    Renvoie la distance entre une entite et une coordonnee
+    '''
     def distance(self, x, y):
         return math.sqrt((x - self.x) ** 2 + (y - self.y) ** 2)
 
-    # Utilise l'algorithme de recherche de chemin A* pour le deplacement d'un monstre vers le joueur
-    # Est appelé dans ai.BasicMonster
+    '''
+    Utilise l'algorithme de recherche de chemin A* pour
+    le deplacement d'un monstre vers le joueur
+    Est appelé dans ai.BasicMonster
+    '''
     def move_astar(self, target, entities, game_map):
         fov = libtcod.map_new(game_map.width, game_map.height)
         for y1 in range(game_map.height):
@@ -87,8 +100,10 @@ class Entity:
         libtcod.path_delete(my_path)
 
 
-# Teste si toutes les entites dotees d'une ai (donc les monstres)
-# d'une liste d'entites donnee sont mortes
+'''
+Teste si toutes les entites dotees d'une ai (donc les monstres)
+d'une liste d'entites donnee sont mortes
+'''
 def all_dead(entities):
     for dead_entity in entities:
         if dead_entity.ai:
@@ -97,7 +112,9 @@ def all_dead(entities):
     return True
 
 
-# Teste si la destination souhaitee du joueur ou d'un monstre est disponible ou non
+'''
+Teste si la destination souhaitee d'un fighter est disponible ou non
+'''
 def get_blocking_entities_at_location(entities, destination_x, destination_y):
     for entity in entities:
         if entity.blocks and entity.x == destination_x and entity.y == destination_y:

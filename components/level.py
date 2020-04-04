@@ -1,9 +1,9 @@
 import sound_manager.sound_manager as sm
 
-
-# Definit l'objet level qui permettra un gestion de l'XP du joueur
-# et gerera le passage de niveau
-
+'''
+Definit l'objet level qui permettra un gestion de l'XP du joueur
+et gerera le passage de niveau
+'''
 
 sound = sm.init_son()
 level_up_sounds = sound.get('level_up')[0]
@@ -20,8 +20,10 @@ class Level:
     def experience_to_next_level(self):
         return self.level_up_base + self.current_level * self.level_up_factor
 
-    # Ajoute de l'XP au joueur et le fait passer un niveau superieur si
-    # son XP depasse son XP max
+    '''
+    Ajoute de l'XP au joueur et le fait passer au 
+    niveau superieur si son XP depasse son XP max
+    '''
     def add_xp(self, xp):
         self.current_xp += xp
         if self.current_xp > self.experience_to_next_level:

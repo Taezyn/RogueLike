@@ -1,6 +1,6 @@
-
-
-# Gere la creation d'une case
+"""
+Gere la creation d'une case
+"""
 
 
 class Tile:

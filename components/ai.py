@@ -2,13 +2,14 @@ import tcod as libtcod
 from random import randint
 from game_messages import Message
 
-
-# Module definissant les différents comportements des monstres.
-
-
+'''
+Module definissant les différents comportements des monstres.
+'''
 class BasicMonster:
-    # Comportement d'un monstre stantard : si il voit le joueur il se deplace jusqu'a 2 cases de lui
-    # S'il est a une case il l'attaque, sinon il ne fait rien
+    """
+    Comportement d'un monstre stantard : si il voit le joueur il se deplace jusqu'a 2 cases de lui
+    S'il est a une case il l'attaque, sinon il ne fait rien
+    """
     def take_turn(self, target, fov_map, game_map, entities):
         results = []
         monster = self.owner
@@ -26,8 +27,10 @@ class ConfusedMonster:
         self.previous_ai = previous_ai
         self.number_of_turns = number_of_turns
 
-    # Comportement d'un monstre confus par un parchemin : mouvement aleatoire autour de sa position
-    # durant un nombre de tour donne
+    '''
+    Comportement d'un monstre confus par un parchemin : mouvement 
+    aleatoire autour de sa position durant un nombre de tour donne
+    '''
     def take_turn(self, target, fov_map, game_map, entities):
         results = []
         if self.number_of_turns > 0:
@@ -39,4 +42,28 @@ class ConfusedMonster:
         else:
             self.owner.ai = self.previous_ai
             results.append({'message': Message("{0} n'est plus confus".format(self.owner.name), libtcod.red)})
+        return results
+
+
+class Boss:
+    def __init__(self):
+        self.turn = 1
+        self.aoeing = False
+
+    def take_turn(self, target, fov_map, game_map, entities):
+        results = []
+        boss = self.owner
+        if self.turn % 10 == 0 or self.aoeing:
+            self.aoeing = True
+            attack_results = boss.fighter.boss_aoe(self.turn, game_map, boss, target)
+            results.extend(attack_results)
+
+        else:
+            if libtcod.map_is_in_fov(fov_map, boss.x, boss.y):
+                if boss.distance_to(target) >= 2:
+                    boss.move_astar(target, entities, game_map)
+                elif target.fighter.hp > 0:
+                    attack_results = boss.fighter.attack(target)
+                    results.extend(attack_results)
+        self.turn += 1
         return results

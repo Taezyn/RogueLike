@@ -1,10 +1,10 @@
 import shelve
 import os
 
-
-# Gere la sauvegarde des donnees du jeu au moment de la fermeture
-# et la lecture de la sauvegarde presente si reprise de la partie
-
+'''
+Gere la sauvegarde des donnees du jeu au moment de la fermeture
+et la lecture de la sauvegarde presente si reprise de la partie
+'''
 
 def save_game(player, entities, game_map, message_log, game_state):
     data_file = shelve.open('savegame', 'n')

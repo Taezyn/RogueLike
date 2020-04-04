@@ -1,6 +1,7 @@
-
-
-# Gere la creation d'une piece et permet de tester son intersection avec une autre piece deja existante
+"""
+Gere la creation d'une piece et permet de tester son
+intersection avec une autre piece deja existante
+"""
 
 
 class Rect:

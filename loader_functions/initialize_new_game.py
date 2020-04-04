@@ -9,10 +9,11 @@ from map_objects.game_map import GameMap
 from render_functions import RenderOrder
 import sound_manager.sound_manager as sm
 
-
-# C'est ici que peuvent etre modifiees toutes les constantes liees a l'affichage,
-# a la difficulte du jeu, a la taille de la carte, etc...
-# get_constants est appelee a l'ouverture du jeu suive de get_game_variables
+'''
+C'est ici que peuvent etre modifiees toutes les constantes liees a l'affichage,
+a la difficulte du jeu, a la taille de la carte, etc...
+get_constants est appelee a l'ouverture du jeu suive de get_game_variables
+'''
 
 
 def get_constants():
@@ -25,7 +26,7 @@ def get_constants():
     panel_height = 7
     panel_y = screen_height - panel_height
 
-    message_x = bar_width + 2
+    message_x = bar_width + 3
     message_width = screen_width - bar_width - 2
     message_height = panel_height - 1
 

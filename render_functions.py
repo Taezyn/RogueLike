@@ -3,20 +3,26 @@ from enum import Enum, auto
 from game_states import GameStates
 from menus import inventory_menu, level_up_menu, character_screen
 
+'''
+Ce module gere le rendu visuel des differentes entites
+'''
 
-# Ce module gere le rendu visuel des differentes entites
-
-# Permet de gerer la priorite des affichages
+'''
+Permet de gerer la priorite des affichages
+comme un systeme de calques
+'''
 class RenderOrder(Enum):
-    STAIRS = auto()
     CORPSE = auto()
+    STAIRS = auto()
     ITEM = auto()
     ACTOR = auto()
     SHOW_INVENTORY = auto()
     DROP_INVENTORY = auto()
 
 
-# Affiche le nom de l'entite sous le pointeur de la souris
+'''
+Affiche le nom de l'entite sous le pointeur de la souris
+'''
 def get_names_under_mouse(mouse, entities, fov_map):
     (x, y) = (mouse.cx, mouse.cy)
     names = [entity.name for entity in entities
@@ -25,7 +31,9 @@ def get_names_under_mouse(mouse, entities, fov_map):
     return names.capitalize()
 
 
-# Cree une barre de progression, utilisee pour l'XP ou les HP
+'''
+Cree une barre de progression, utilisee pour l'XP ou les HP
+'''
 def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_color):
     bar_width = int(float(value) / maximum * total_width)
     libtcod.console_set_default_background(panel, back_color)
@@ -38,26 +46,31 @@ def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_c
                              '{0}: {1}/{2}'.format(name, value, maximum))
 
 
-# Affiche les pieces, les entites, les menus et tous les elements du jeu
+'''
+Affiche les pieces, les entites, les menus et tous les elements du jeu
+'''
 def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, screen_width, screen_height,
                bar_width, panel_height, panel_y, mouse, colors, game_state):
     if fov_recompute:
-
         for y in range(game_map.height):
             for x in range(game_map.width):
                 visible = libtcod.map_is_in_fov(fov_map, x, y)
                 wall = game_map.tiles[x][y].block_sight
                 if visible:
                     if wall:
-                        libtcod.console_set_char_background(con, x, y, colors.get('light_wall'), libtcod.BKGND_SET)
+                        #libtcod.console_set_char_background(con, x, y, colors.get('light_wall'), libtcod.BKGND_SET)
+                        libtcod.console_set_char_background(con, x, y, libtcod.darker_flame, libtcod.BKGND_SET)
                     else:
-                        libtcod.console_set_char_background(con, x, y, colors.get('light_ground'), libtcod.BKGND_SET)
+                        #libtcod.console_set_char_background(con, x, y, colors.get('light_ground'), libtcod.BKGND_SET)
+                        libtcod.console_set_char_background(con, x, y, libtcod.amber, libtcod.BKGND_SET)
                     game_map.tiles[x][y].explored = True
                 elif game_map.tiles[x][y].explored:
                     if wall:
-                        libtcod.console_set_char_background(con, x, y, colors.get('dark_wall'), libtcod.BKGND_SET)
+                        #libtcod.console_set_char_background(con, x, y, colors.get('dark_wall'), libtcod.BKGND_SET)
+                        libtcod.console_set_char_background(con, x, y, libtcod.darker_sepia, libtcod.BKGND_SET)
                     else:
-                        libtcod.console_set_char_background(con, x, y, colors.get('dark_ground'), libtcod.BKGND_SET)
+                        #libtcod.console_set_char_background(con, x, y, colors.get('light_wall'), libtcod.BKGND_SET)
+                        libtcod.console_set_char_background(con, x, y, libtcod.light_sepia, libtcod.BKGND_SET)
     entities_in_render_order = sorted(entities, key=lambda x: x.render_order.value)
 
     for entity in entities_in_render_order:
@@ -95,18 +108,25 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
         character_screen(player, 30, 10, screen_width, screen_height)
 
 
-# Affiche une entite
+'''
+Affiche une entite
+'''
 def draw_entity(con, entity, fov_map, game_map):
     if libtcod.map_is_in_fov(fov_map, entity.x, entity.y) or (entity.stairs and game_map.tiles[entity.x][entity.y].explored):
         libtcod.console_set_default_foreground(con, entity.color)
         libtcod.console_put_char(con, entity.x, entity.y, entity.char, libtcod.BKGND_NONE)
 
 
-# Permet au changement d'etage d'effacer l'affichage des items, monstres et cadavres
+'''
+Permet au changement d'etage d'effacer l'affichage des items, monstres et cadavres
+'''
 def clear_entity(con, entity):
     libtcod.console_put_char(con, entity.x, entity.y, ' ', libtcod.BKGND_NONE)
 
 
+'''
+Efface toutes les entites de l'ecran
+'''
 def clear_all(con, entities):
     for entity in entities:
         clear_entity(con, entity)

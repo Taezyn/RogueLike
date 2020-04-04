@@ -1,7 +1,8 @@
 import tcod as libtcod
 
-
-# Initialise le champ de vision sur une carte donnee
+'''
+Initialise le champ de vision sur une carte donnee
+'''
 def initialize_fov(game_map):
     fov_map = libtcod.map_new(game_map.width, game_map.height)
     for y in range(game_map.height):
@@ -11,6 +12,8 @@ def initialize_fov(game_map):
     return fov_map
 
 
-# Recalcule le champ de vision a partir d'une carte de vision deja existante
+'''
+Recalcule le champ de vision a partir d'une carte de vision deja existante
+'''
 def recompute_fov(fov_map, x, y, radius, light_walls=True, algorithm=0):
     libtcod.map_compute_fov(fov_map, x, y, radius, light_walls, algorithm)

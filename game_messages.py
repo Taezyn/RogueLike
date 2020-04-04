@@ -1,8 +1,9 @@
 import tcod as libtcod
 import textwrap
 
-
-# Ce module gere la boite dans laquelle les messages defilent.
+'''
+Ce module gere la boite dans laquelle les messages defilent.
+'''
 
 
 class Message:
@@ -18,8 +19,10 @@ class MessageLog:
         self.width = width
         self.height = height
 
-    # Ajoute un message a la boite des messages, coupe un message trop long pour l'afficher
-    # sur plusieurs lignes si besoin
+    '''
+    Ajoute un message a la boite des messages, coupe un message
+    trop long pour l'afficher sur plusieurs lignes si besoin
+    '''
     def add_message(self, message):
         new_msg_lines = textwrap.wrap(message.text, self.width)
         for line in new_msg_lines:

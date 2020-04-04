@@ -1,6 +1,6 @@
-
-
-# Definit l'objet item
+"""
+Definit l'objet item
+"""
 
 
 class Item:

@@ -1,9 +1,9 @@
 import tcod as libtcod
 from game_states import GameStates
 
-
-# Ce module gere la lecture des touches du clavier et de la souris
-
+'''
+Ce module gere la lecture des touches du clavier et de la souris
+'''
 
 def handle_keys(key, game_state):
     if game_state == GameStates.PLAYERS_TURN:
@@ -23,14 +23,18 @@ def handle_keys(key, game_state):
     return {}
 
 
-# Permet d'annuler le ciblage d'un monstre avec un parchemin
+'''
+Permet d'annuler le ciblage d'un monstre avec un parchemin
+'''
 def handle_targeting_keys(key):
     if key.vk == libtcod.KEY_ESCAPE:
         return {'exit': True}
     return {}
 
 
-# Etat courrant du jeu, permet de se deplacer et d'ouvrir les differents menus
+'''
+Etat courrant du jeu, permet de se deplacer et d'ouvrir les differents menus
+'''
 def handle_player_turn_keys(key):
     key_char = chr(key.c)
     if key.vk == libtcod.KEY_UP or key_char == 'z':
@@ -70,7 +74,9 @@ def handle_player_turn_keys(key):
     return {}
 
 
-# Choix de la stat a augmenter lors d'un level-UP
+'''
+Choix de la stat a augmenter lors d'un level-UP
+'''
 def handle_level_up_menu(key):
     if key:
         key_char = chr(key.c)
@@ -83,15 +89,18 @@ def handle_level_up_menu(key):
     return {}
 
 
-# Lorsque l'on affiche l'ecran du personnage on ne
-# peut qu'appuyer sur echap pour quitter ce menu
+'''
+Lorsque l'on affiche l'ecran du personnage on ne
+peut qu'appuyer sur echap pour quitter ce menu
+'''
 def handle_character_screen(key):
     if key.vk == libtcod.KEY_ESCAPE:
         return {'exit': True}
     return {}
 
-
-# Gere la position du clic de la souris
+'''
+Gere la position du clic de la souris
+'''
 def handle_mouse(mouse):
     (x, y) = (mouse.cx, mouse.cy)
     if mouse.lbutton_pressed:
@@ -101,6 +110,10 @@ def handle_mouse(mouse):
     return {}
 
 
+'''
+Gere en permanance l'affichage de l'inventaire,
+le plein ecran et le menu prinipal
+'''
 def handle_player_dead_keys(key):
     key_char = chr(key.c)
     if key_char == 'i':
@@ -112,7 +125,9 @@ def handle_player_dead_keys(key):
     return {}
 
 
-# Permet de gerer la saisie d'un objet dans l'inventaire
+'''
+Permet de gerer la saisie d'un objet dans l'inventaire
+'''
 def handle_inventory_keys(key):
     index = key.c - ord('a')
     if index >= 0:
@@ -126,7 +141,9 @@ def handle_inventory_keys(key):
     return {}
 
 
-# Permet de gerer le choix dans le menu principal
+'''
+Permet de gerer le choix dans le menu principal
+'''
 def handle_main_menu(key):
     key_char = chr(key.c)
     if key_char == 'a':
@@ -144,7 +161,9 @@ def handle_main_menu(key):
     return {}
 
 
-# Idem que pour le menu d'info personnage
+'''
+Idem que pour le menu d'info personnage
+'''
 def handle_commands_menu(key):
     if key.vk == libtcod.KEY_ESCAPE:
         return {'back_to_game': True}

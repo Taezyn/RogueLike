@@ -157,6 +157,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
         mouse_action = handle_mouse(mouse)
 
         # Lit les touches pressees pour en deduire quoi faire
+        # Depend du gamestate
         move = action.get('move')
         wait = action.get('wait')
         pickup = action.get('pickup')
@@ -280,7 +281,8 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
         if fullscreen:
             libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
 
-        # Execute l'entree precedente
+        # Execute tous les resultats precedent
+        # Qui ne sont pas None
         for player_turn_result in player_turn_results:
             message = player_turn_result.get('message')
             dead_entity = player_turn_result.get('dead')

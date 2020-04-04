@@ -7,8 +7,9 @@ import sound_manager.sound_manager as sm
 sound = sm.init_son()
 death_sounds = sound.get('death')[0]
 
-
-# Gere la mort du joueur
+'''
+Gere la mort du joueur
+'''
 def kill_player(player):
     player.char = '%'
     player.color = libtcod.dark_red
@@ -17,7 +18,9 @@ def kill_player(player):
     return Message('Rekt', libtcod.red), GameStates.PLAYER_DEAD
 
 
-# Gere la mort d'un monstre
+'''
+Gere la mort d'un monstre
+'''
 def kill_monster(monster):
     death_message = Message('{0} est mort'.format(monster.name.capitalize()), libtcod.orange)
     monster.char = '%'
