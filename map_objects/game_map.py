@@ -1,6 +1,6 @@
 import tcod as libtcod
 from random import randint
-from components.ai import BasicMonster, Boss
+from components.ai import BasicMonster, Boss, ConfusedMonster
 from components.fighter import Fighter
 from components.item import Item
 from components.stairs import Stairs
@@ -65,13 +65,14 @@ class GameMap:
                     else:
                         self.create_v_tunnel(prev_y, new_y, prev_x)
                         self.create_h_tunnel(prev_x, new_x, new_y)
-                self.place_entities(new_room, entities)
+                entities = self.place_entities(new_room, entities)
                 rooms.append(new_room)
                 num_rooms += 1
         stairs_component = Stairs(self.dungeon_level + 1)
         down_stairs = Entity(center_of_last_room_x, center_of_last_room_y, '>', libtcod.white, 'Stairs',
                              render_order=RenderOrder.STAIRS, stairs=stairs_component)
         entities.append(down_stairs)
+        return entities
 
     '''
     Rends les blocs d'une piece donnee non bloquants et permet de voir au travers
@@ -158,6 +159,7 @@ class GameMap:
                     item = Entity(x, y, '#', libtcod.yellow, 'Parchemin de foudre', render_order=RenderOrder.ITEM,
                                   item=item_component)
                 entities.append(item)
+        return entities
 
     '''
     Lit si la coordonnee (x, y) est bloquee ou non
@@ -175,26 +177,37 @@ class GameMap:
         self.dungeon_level += 1
         entities = [player]
         message_log.add_message(Message('Vous recuperez la moitie de votre vie.', libtcod.light_violet))
-        # Desactive pour le moment l'apparition du boss
-        #if self.dungeon_level % 5 == 0:
-        if False:
-            self.make_boss_map(entities, constants)
+        if self.dungeon_level % 2 == 0:
+            self.tiles = self.initialize_tiles()
+            entities = self.make_boss_map(entities, player)
             message_log.add_message(Message("C'est l'heure du du-du-du---DUEL !", libtcod.light_red))
         else:
             self.tiles = self.initialize_tiles()
-            self.make_map(constants['max_rooms'], constants['room_min_size'], constants['room_max_size'],
+            entities = self.make_map(constants['max_rooms'], constants['room_min_size'], constants['room_max_size'],
                           constants['map_width'], constants['map_height'], player, entities)
         player.fighter.heal(player.fighter.max_hp // 2)
         return entities
 
     '''
-    Cree la piece du boss et y place le boss
+    Cree la piece du boss et y place les entites
     '''
-    def make_boss_map(self, entities, constants):
-        boss_rect = Rect(10, 10, constants.get('screen_width') - 15, constants.get('screen_height') - 15)
+    def make_boss_map(self, entities, player):
+        w = 50
+        h = 30
+        x = 15
+        y = 10
+        boss_rect = Rect(x, y, w, h)
         self.create_room(boss_rect)
-        fighter_component = Fighter(hp=30, defense=1, power=8, xp=100)
+        player.x = 40
+        player.y = 35
+        fighter_component = Fighter(hp=20*player.fighter.power, defense=0, power=player.fighter.max_hp//10,
+                                    xp=player.level.experience_to_next_level)
         ai_component = Boss()
-        boss = Entity(boss_rect[0], boss_rect[1] - 10, 'W', libtcod.darker_green, 'Boss', blocks=True,
+        boss = Entity(40, 25, 'B', libtcod.darker_green, 'Boss', blocks=True,
                       fighter=fighter_component, render_order=RenderOrder.ACTOR, ai=ai_component)
         entities.append(boss)
+        stairs_component = Stairs(self.dungeon_level + 1)
+        down_stairs = Entity(40, 25, '>', libtcod.white, 'Stairs',
+                             render_order=RenderOrder.STAIRS, stairs=stairs_component, visible=False)
+        entities.append(down_stairs)
+        return entities

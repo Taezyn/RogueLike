@@ -10,6 +10,9 @@ class BasicMonster:
     Comportement d'un monstre stantard : si il voit le joueur il se deplace jusqu'a 2 cases de lui
     S'il est a une case il l'attaque, sinon il ne fait rien
     """
+    def __init__(self):
+        self.ai_name = 'BasicMonster'
+
     def take_turn(self, target, fov_map, game_map, entities):
         results = []
         monster = self.owner
@@ -24,6 +27,7 @@ class BasicMonster:
 
 class ConfusedMonster:
     def __init__(self, previous_ai, number_of_turns=10):
+        self.ai_name = 'ConfusedMonster'
         self.previous_ai = previous_ai
         self.number_of_turns = number_of_turns
 
@@ -47,17 +51,20 @@ class ConfusedMonster:
 
 class Boss:
     def __init__(self):
+        self.ai_name = 'Boss'
         self.turn = 1
         self.aoeing = False
+        self.radius = 3
 
     def take_turn(self, target, fov_map, game_map, entities):
         results = []
         boss = self.owner
         if self.turn % 10 == 0 or self.aoeing:
             self.aoeing = True
-            attack_results = boss.fighter.boss_aoe(self.turn, game_map, boss, target)
+            attack_results = boss.fighter.boss_aoe(self.turn, boss, target, self.radius)
             results.extend(attack_results)
-
+            if attack_results:
+                self.aoeing = False
         else:
             if libtcod.map_is_in_fov(fov_map, boss.x, boss.y):
                 if boss.distance_to(target) >= 2:

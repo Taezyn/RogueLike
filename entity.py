@@ -8,7 +8,7 @@ Tous les objets python intervenant dans le jeu sont definis comme des entites, s
 
 class Entity:
     def __init__(self, x, y, char, color, name, blocks=False, render_order=RenderOrder.CORPSE, fighter=None, ai=None,
-                 item=None, inventory=None, stairs=None, level=None):
+                 item=None, inventory=None, stairs=None, level=None, visible=True):
         self.x = x
         self.y = y
         self.char = char
@@ -22,6 +22,7 @@ class Entity:
         self.inventory = inventory
         self.stairs = stairs
         self.level = level
+        self.visible = visible
 
         # Les if suivants permettent de faire le lien entre un objet (ai, fighter, etc...)
         # et la classe entite a laquelle l'objet repond egalement

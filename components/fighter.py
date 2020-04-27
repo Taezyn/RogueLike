@@ -55,17 +55,10 @@ class Fighter:
     '''
     Pour le boss : attaque en aoe, 3 cases autour de lui
     '''
-    def boss_aoe(self, turn, game_map, boss, target):
-        if turn % 10 == 0:
-            # Zone vert clair
-            return False
-        elif turn % 10 == 1:
-            # Zone vert
-            return False
-        elif turn % 10 == 2:
-            # Zone vert fonce
-            return False
-        elif turn % 10 == 3 and boss.distance_to(target) < 3:
+    def boss_aoe(self, turn, boss, target, radius):
+        if turn % 10 == 3 and boss.distance_to(target) <= radius:
             target.fighter.take_damage(int(0.33 * target.fighter.max_hp))
-            return True
-
+            return [{'message': Message('Le boss attaque en AOE le joueur pour 33% de sa vie.')}]
+        elif turn % 10 == 3 and boss.distance_to(target) > radius:
+            return [{'message': Message('Le boss rate son AOE.')}]
+        return []

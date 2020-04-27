@@ -33,7 +33,7 @@ def main():
     # Initialise le jeu en commencant par afficher le menu principal
     constants = get_constants()
 
-    libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
+    libtcod.console_set_custom_font('arial10x10 - Copie.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
 
     libtcod.console_init_root(constants['screen_width'], constants['screen_height'], "Rogue doesn't like", False)
 
@@ -196,6 +196,10 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                         player.level.add_xp(0.1 * player.level.level_up_base)
                         clean_stage_sound.playpause()
                         message_log.add_message(Message('Plus de monstres, bonus 10% XP', libtcod.yellow))
+                        for entity in entities:
+                            if entity.stairs:
+                                entity.visible = True
+
                 else:
                     player.move(dx, dy)
                     fov_recompute = True
@@ -362,6 +366,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             else:
                 game_state = GameStates.PLAYERS_TURN
 
+    #return player, entities, game_map, message_log, game_state
 
 
 if __name__ == '__main__':
