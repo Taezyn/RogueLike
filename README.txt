@@ -10,3 +10,5 @@ Prendre garde aux réglages sonnores de l'ordinateur, le jeu contient musique et
 --- Pour lancer le jeu ---
 Un double clic sur engine.py suffira.
 /!\ Lancer le jeu depuis un IDE fera crasher le programme à sa fermeture. Il est suggeré de n'executer que le script python.
+
+Taille inventaire fonction du lvl
