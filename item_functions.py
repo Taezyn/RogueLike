@@ -13,7 +13,8 @@ Definit les comportements des items lorsqu'ils sont utilises
 '''
 
 
-'''Potion de soin : restaure un quart de la vie
+'''
+Potion de soin : restaure un quart de la vie
 '''
 def heal(*args, **kwargs):
     entity = args[0]

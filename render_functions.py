@@ -12,9 +12,9 @@ Permet de gerer la priorite des affichages
 comme un systeme de calques
 '''
 class RenderOrder(Enum):
-    STAIRS = auto()
     CORPSE = auto()
     ITEM = auto()
+    STAIRS = auto()
     ACTOR = auto()
     SHOW_INVENTORY = auto()
     DROP_INVENTORY = auto()
@@ -52,11 +52,20 @@ def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_c
                              '{0}: {1}/{2}'.format(name, value, maximum))
 
 
+def load_customfont():
+    # The index of the first custom tile in the file
+    a = 256
+    # The "y" is the row index, here we load the sixth row in the font file. Increase the "6" to load any new rows from the file
+    for y in range(5, 6):
+        libtcod.console_map_ascii_codes_to_font(a, 32, 0, y)
+        a += 32
+
+
 '''
 Affiche les pieces, les entites, les menus et tous les elements du jeu
 '''
 def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, screen_width,
-               screen_height, bar_width, panel_height, panel_y, mouse, colors, game_state):
+               screen_height, bar_width, panel_height, panel_y, mouse, colors, game_state, graphics):
     if fov_recompute:
         for y in range(game_map.height):
             for x in range(game_map.width):
@@ -64,35 +73,39 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
                 wall = game_map.tiles[x][y].block_sight
                 if visible:
                     if wall:
-                        libtcod.console_set_char_background(con, x, y, libtcod.darker_flame, libtcod.BKGND_SET)
+                        #libtcod.console_set_char_background(con, x, y, libtcod.darker_flame, libtcod.BKGND_SET)
+                        libtcod.console_put_char_ex(con, x, y, graphics.get('wall'), libtcod.white, libtcod.black)
                     else:
-                        libtcod.console_set_char_background(con, x, y, libtcod.amber, libtcod.BKGND_SET)
+                        #libtcod.console_set_char_background(con, x, y, libtcod.amber, libtcod.BKGND_SET)
+                        libtcod.console_put_char_ex(con, x, y, graphics.get('floor'), libtcod.white, libtcod.black)
                     game_map.tiles[x][y].explored = True
                 elif game_map.tiles[x][y].explored:
                     if wall:
-                        libtcod.console_set_char_background(con, x, y, libtcod.darker_sepia, libtcod.BKGND_SET)
+                        #libtcod.console_set_char_background(con, x, y, libtcod.darker_sepia, libtcod.BKGND_SET)
+                        libtcod.console_put_char_ex(con, x, y, graphics.get('wall'), libtcod.light_grey, libtcod.black)
                     else:
-                        libtcod.console_set_char_background(con, x, y, libtcod.light_sepia, libtcod.BKGND_SET)
+                        #libtcod.console_set_char_background(con, x, y, libtcod.light_sepia, libtcod.BKGND_SET)
+                        libtcod.console_put_char_ex(con, x, y, graphics.get('floor'), libtcod.light_grey, libtcod.black)
     entities_in_render_order = sorted(entities, key=lambda x: x.render_order.value)
 
     for entity in entities_in_render_order:
         draw_entity(con, entity, fov_map, game_map)
-        if entity.ai :
+        if entity.ai:
             if entity.ai.ai_name == 'Boss':
                 if entity.ai.aoeing:
                     if entity.ai.turn % 10 == 0:
-                        color = libtcod.light_red
+                        color = libtcod.lightest_red
                     elif entity.ai.turn % 10 == 1:
-                        color = libtcod.red
+                        color = libtcod.lighter_red
                     elif entity.ai.turn % 10 == 2:
-                        color = libtcod.dark_red
+                        color = libtcod.light_red
                     elif entity.ai.turn % 10 == 3:
-                        color = libtcod.darker_red
+                        color = libtcod.red
                     radius = entity.ai.radius
                     for x in range(entity.x - radius, entity.x + radius + 1):
                         for y in range(entity.y - radius, entity.y + radius + 1):
                             if ((x - entity.x)**2 + (y - entity.y)**2)**0.5 <= radius:
-                                libtcod.console_set_char_background(con, x, y, color, libtcod.BKGND_SET)
+                                    libtcod.console_set_char_foreground(con, x, y, color)
 
     libtcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
     libtcod.console_set_default_background(panel, libtcod.black)
@@ -103,6 +116,7 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
         libtcod.console_set_default_foreground(panel, message.color)
         libtcod.console_print_ex(panel, message_log.x, y, libtcod.BKGND_NONE, libtcod.LEFT, message.text)
         y += 1
+
     render_bar(panel, 1, 1, bar_width, 'HP', player.fighter.hp, player.fighter.max_hp,
                libtcod.light_red, libtcod.darker_red)
     libtcod.console_print_ex(panel, 1, 2, libtcod.BKGND_NONE, libtcod.LEFT,
@@ -120,6 +134,7 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
                    libtcod.light_purple, libtcod.darker_purple)
     libtcod.console_print_ex(panel, 1, 4, libtcod.BKGND_NONE, libtcod.LEFT,
                              'ATQ : {0} - DEF : {1}'.format(player.fighter.power, player.fighter.defense))
+
     libtcod.console_set_default_foreground(panel, libtcod.light_gray)
     libtcod.console_print_ex(panel, 1, 0, libtcod.BKGND_NONE, libtcod.LEFT,
                              get_names_under_mouse(mouse, entities, fov_map))
@@ -129,7 +144,7 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
             inventory_title = 'Echap pour quitter, A/B/C... pour utiliser.\n'
         else:
             inventory_title = 'Echap pour quitter, A/B/C... pour lacher\n'
-        inventory_menu(con, inventory_title, player.inventory, 50, screen_width, screen_height)
+        inventory_menu(con, inventory_title, player, 50, screen_width, screen_height)
     elif game_state == GameStates.LEVEL_UP:
         level_up_menu(con, 'Level up, choisis une amelioration :', player, 40, screen_width, screen_height)
     elif game_state == GameStates.CHARACTER_SCREEN:
@@ -143,8 +158,10 @@ def draw_entity(con, entity, fov_map, game_map):
     if libtcod.map_is_in_fov(fov_map, entity.x, entity.y) or (entity.stairs and game_map.tiles[entity.x][entity.y].explored):
         if entity.visible:
             libtcod.console_set_default_foreground(con, entity.color)
-            libtcod.console_put_char(con, entity.x, entity.y, entity.char, libtcod.BKGND_NONE)
-
+            #libtcod.console_put_char(con, entity.x, entity.y, entity.char, libtcod.BKGND_NONE)
+            libtcod.console_put_char_ex(con, entity.x, entity.y, entity.char, libtcod.white, libtcod.black)
+    elif game_map.tiles[entity.x][entity.y].explored:
+        libtcod.console_put_char_ex(con, entity.x, entity.y, 257, libtcod.light_grey, libtcod.black)
 
 '''
 Permet au changement d'etage d'effacer l'affichage des items, monstres et cadavres

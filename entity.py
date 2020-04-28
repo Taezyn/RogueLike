@@ -1,6 +1,7 @@
 import tcod as libtcod
 import math
 from render_functions import RenderOrder
+from components.item import Item
 
 '''
 Tous les objets python intervenant dans le jeu sont definis comme des entites, sauf le sol
@@ -8,7 +9,7 @@ Tous les objets python intervenant dans le jeu sont definis comme des entites, s
 
 class Entity:
     def __init__(self, x, y, char, color, name, blocks=False, render_order=RenderOrder.CORPSE, fighter=None, ai=None,
-                 item=None, inventory=None, stairs=None, level=None, visible=True):
+                 item=None, inventory=None, stairs=None, level=None, visible=True, equipment=None, equippable=None):
         self.x = x
         self.y = y
         self.char = char
@@ -23,6 +24,8 @@ class Entity:
         self.stairs = stairs
         self.level = level
         self.visible = visible
+        self.equipment = equipment
+        self.equippable = equippable
 
         # Les if suivants permettent de faire le lien entre un objet (ai, fighter, etc...)
         # et la classe entite a laquelle l'objet repond egalement
@@ -39,7 +42,14 @@ class Entity:
             self.stairs.owner = self
         if self.level:
             self.level.owner = self
-
+        if self.equipment:
+            self.equipment.owner = self
+        if self.equippable:
+            self.equippable.owner = self
+            if not self.item:
+                item = Item()
+                self.item = item
+                self.item.owner = self
     '''
     Fait bouger une entite mobile
     '''

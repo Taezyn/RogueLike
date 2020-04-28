@@ -2,6 +2,9 @@ import tcod as libtcod
 from components.fighter import Fighter
 from components.inventory import Inventory
 from components.level import Level
+from components.equipment import Equipment
+from components.equippable import Equippable
+from equipment_slots import EquipmentSlots
 from entity import Entity
 from game_messages import MessageLog
 from game_states import GameStates
@@ -53,6 +56,23 @@ def get_constants():
         'light_ground': libtcod.Color(200, 180, 50)
     }
 
+    graphics = {
+        'wall': 256,
+        'floor': 257,
+        'player': 258,
+        'orc': 259,
+        'troll': 260,
+        'healing_potion': 261,
+        'sword': 262,
+        'shield': 263,
+        'stairs': 264,
+        'lightning_scroll': 265,
+        'fireball_scroll': 266,
+        'confusion_scroll': 267,
+        'tomb': 268,
+        'dagger': 269,
+        'boss': 270
+    }
     constants = {
         'window_title': window_title,
         'screen_width': screen_width,
@@ -74,7 +94,8 @@ def get_constants():
         'max_monsters_per_room': max_monsters_per_room,
         'max_items_per_room': max_items_per_room,
         'colors': colors,
-        'sound': sons
+        'sound': sons,
+        'graphics': graphics
     }
     return constants
 
@@ -83,12 +104,18 @@ def get_game_variables(constants):
     fighter_component = Fighter(hp=100, defense=50, power=50)
     inventory_component = Inventory(26)
     level_component = Level()
-    player = Entity(0, 0, '@', libtcod.white, 'Player', blocks=True, render_order=RenderOrder.ACTOR,
-                   fighter=fighter_component, inventory=inventory_component, level=level_component)
+    equipment_component = Equipment()
+    player = Entity(0, 0, constants.get('graphics').get('player'), libtcod.white, 'Player', blocks=True, render_order=RenderOrder.ACTOR,
+                    fighter=fighter_component, inventory=inventory_component, level=level_component,
+                    equipment=equipment_component)
     entities = [player]
+    equippable_component = Equippable(EquipmentSlots.MAIN_HAND, power_bonus=2)
+    dagger = Entity(0, 0, constants.get('graphics').get('dagger'), libtcod.sky, 'Dague', equippable=equippable_component)
+    player.inventory.add_item(dagger)
+    player.equipment.toggle_equip(dagger)
     game_map = GameMap(constants['map_width'], constants['map_height'])
     game_map.make_map(constants['max_rooms'], constants['room_min_size'], constants['room_max_size'],
-                      constants['map_width'], constants['map_height'], player, entities)
+                      constants['map_width'], constants['map_height'], player, entities, constants.get('graphics'))
     message_log = MessageLog(constants['message_x'], constants['message_width'], constants['message_height'])
     game_state = GameStates.PLAYERS_TURN
     return player, entities, game_map, message_log, game_state

@@ -5,7 +5,7 @@ from fov_functions import initialize_fov, recompute_fov
 from game_messages import Message
 from game_states import GameStates
 from input_handlers import handle_keys, handle_mouse, handle_main_menu
-from render_functions import clear_all, render_all
+from render_functions import clear_all, render_all, load_customfont
 from loader_functions.initialize_new_game import get_constants, get_game_variables
 from loader_functions.data_loaders import load_game, save_game
 from menus import main_menu, message_box, command_menu
@@ -32,8 +32,9 @@ import sound_manager.sound_manager as sm
 def main():
     # Initialise le jeu en commencant par afficher le menu principal
     constants = get_constants()
-
-    libtcod.console_set_custom_font('arial10x10 - Copie.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
+    # The font has 32 chars in a row, and there's a total of 10 rows. Increase the "10" when you add new rows to the sample font file
+    libtcod.console_set_custom_font('textures.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD, 32, 10)
+    load_customfont()
 
     libtcod.console_init_root(constants['screen_width'], constants['screen_height'], "Rogue doesn't like", False)
 
@@ -145,7 +146,8 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
         # Affiche la carte generee
         render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log,
                    constants['screen_width'], constants['screen_height'], constants['bar_width'],
-                   constants['panel_height'], constants['panel_y'], mouse, constants['colors'], game_state)
+                   constants['panel_height'], constants['panel_y'], mouse, constants['colors'], game_state,
+                   constants.get('graphics'))
 
         fov_recompute = False
 
@@ -199,14 +201,14 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                         for entity in entities:
                             if entity.stairs:
                                 entity.visible = True
-
                 else:
                     player.move(dx, dy)
-                    fov_recompute = True
                 game_state = GameStates.ENEMY_TURN
+            fov_recompute = True
 
         # Si le joueur passe son tour
         elif wait:
+            fov_recompute = True
             game_state = GameStates.ENEMY_TURN
 
         # Si le joueur ramasse un objet
@@ -242,7 +244,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
         if take_stairs and game_state == GameStates.PLAYERS_TURN:
             for entity in entities:
                 if entity.stairs and entity.x == player.x and entity.y == player.y:
-                    entities = game_map.next_floor(player, message_log, constants)
+                    entities = game_map.next_floor(player, message_log, constants, constants.get('graphics'))
                     fov_map = initialize_fov(game_map)
                     fov_recompute = True
                     libtcod.console_clear(con)
@@ -252,12 +254,12 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
 
         if level_up:
             if level_up == 'hp':
-                player.fighter.max_hp += 20
+                player.fighter.base_max_hp += 20
                 player.fighter.hp += 20
             elif level_up == 'str':
-                player.fighter.power += 1
+                player.fighter.base_power += 1
             elif level_up == 'def':
-                player.fighter.defense += 1
+                player.fighter.base_defense += 1
             game_state = previous_game_state
 
         if show_character_screen:
@@ -293,6 +295,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             item_added = player_turn_result.get('item_added')
             item_consumed = player_turn_result.get('consumed')
             item_dropped = player_turn_result.get('item_dropped')
+            equip = player_turn_result.get('equip')
             targeting = player_turn_result.get('targeting')
             targeting_cancelled = player_turn_result.get('targeting_cancelled')
             xp = player_turn_result.get('xp')
@@ -316,6 +319,17 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
 
             if item_dropped:
                 entities.append(item_dropped)
+                game_state = GameStates.ENEMY_TURN
+
+            if equip:
+                equip_results = player.equipment.toggle_equip(equip)
+                for equip_result in equip_results:
+                    equipped = equip_result.get('equipped')
+                    dequipped = equip_result.get('dequipped')
+                    if equipped:
+                        message_log.add_message(Message('{0} equipe(e)'.format(equipped.name)))
+                    if dequipped:
+                        message_log.add_message(Message('{0} desequippe(e)'.format(dequipped.name)))
                 game_state = GameStates.ENEMY_TURN
 
             if targeting:
@@ -366,7 +380,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             else:
                 game_state = GameStates.PLAYERS_TURN
 
-    #return player, entities, game_map, message_log, game_state
+    return player, entities, game_map, message_log, game_state
 
 
 if __name__ == '__main__':

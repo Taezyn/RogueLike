@@ -117,7 +117,7 @@ le plein ecran et le menu prinipal
 def handle_player_dead_keys(key):
     key_char = chr(key.c)
     if key_char == 'i':
-        return {'show_inventory': True}
+        return {'show_character_screen': True}
     if key.vk == libtcod.KEY_ENTER and key.lalt:
         return {'fullscreen': True}
     elif key.vk == libtcod.KEY_ESCAPE:

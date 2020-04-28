@@ -11,7 +11,7 @@ death_sounds = sound.get('death')[0]
 Gere la mort du joueur
 '''
 def kill_player(player):
-    player.char = '%'
+    player.char = 268
     player.color = libtcod.dark_red
     death_sound = sm.Son(death_sounds)
     death_sound.playpause()
@@ -23,7 +23,7 @@ Gere la mort d'un monstre
 '''
 def kill_monster(monster):
     death_message = Message('{0} est mort'.format(monster.name.capitalize()), libtcod.orange)
-    monster.char = '%'
+    monster.char = 268
     monster.color = libtcod.dark_red
     monster.blocks = False
     monster.fighter = None

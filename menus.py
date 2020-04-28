@@ -35,11 +35,18 @@ def menu(con, header, options, width, screen_width, screen_height):
 '''
 Cree un menu de l'inventaire avec pour chaque item une option
 '''
-def inventory_menu(con, header, inventory, inventory_width, screen_width, screen_height):
-    if len(inventory.items) == 0:
+def inventory_menu(con, header, player, inventory_width, screen_width, screen_height):
+    if len(player.inventory.items) == 0:
         options = ['Inventaire vide.']
     else:
-        options = [item.name for item in inventory.items]
+        options = []
+        for item in player.inventory.items:
+            if player.equipment.main_hand == item:
+                options.append('{0} main droite'.format(item.name))
+            elif player.equipment.off_hand == item:
+                options.append('{0} main gauche'.format(item.name))
+            else:
+                options.append(item.name)
     menu(con, header, options, inventory_width, screen_width, screen_height)
 
 
