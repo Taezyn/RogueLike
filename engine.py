@@ -53,11 +53,12 @@ def main():
 
     main_menu_background_image = libtcod.image_load('menu_background.png')
 
-    bg_music = sm.Son(constants.get('sound').get('background_music')[0])
+    play_bg_music = False
+    bg_music = sm.choose_sound(constants.get('sound').get('background_music'))
 
     key = libtcod.Key()
     mouse = libtcod.Mouse()
-
+    
     while not libtcod.console_is_window_closed():
         libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
         # Si le menu principal est affiche :
@@ -97,6 +98,7 @@ def main():
                 break
             # Lit ou arrete la musique de fond
             elif sound:
+                play_bg_music = not play_bg_music
                 bg_music.playpause()
             elif command:
                 show_command_menu = True
@@ -117,11 +119,11 @@ def main():
         # Lance une partie
         else:
             libtcod.console_clear(con)
-            player, entities, game_map, message_log, game_state = play_game(player, entities, game_map, message_log, game_state, con, panel, constants)
+            player, entities, game_map, message_log, game_state, bg_music, play_bg_music = play_game(player, entities, game_map, message_log, game_state, con, panel, constants, bg_music, play_bg_music)
             show_main_menu = True
 
 
-def play_game(player, entities, game_map, message_log, game_state, con, panel, constants):
+def play_game(player, entities, game_map, message_log, game_state, con, panel, constants, bg_music, play_bg_music):
     sword_sounds = constants.get('sound').get('sword')
     hurt_sound = sm.Son(constants.get('sound').get('hurt')[0])
     clean_stage_sound = sm.Son(constants.get('sound').get('clean_stage')[0])
@@ -137,6 +139,9 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
 
     targeting_item = None
 
+    play_boss_music = False
+    play_stage_music = False
+
     while not libtcod.console_is_window_closed():
         libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
 
@@ -148,6 +153,35 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                    constants['screen_width'], constants['screen_height'], constants['bar_width'],
                    constants['panel_height'], constants['panel_y'], mouse, constants['colors'], game_state,
                    constants.get('graphics'))
+
+        # Gere la lecture aleatoire de la musique de fond dans les differents stages
+        if pygame.mixer.get_busy() == 0 and play_bg_music:
+            if game_map.dungeon_level % 5 == 0:
+                bg_music.playpause()
+                bg_music = sm.choose_sound(constants.get('sound').get('boss_fight'))
+                bg_music.playpause()
+            else:
+                bg_music.playpause()
+                bg_music = sm.choose_sound(constants.get('sound').get('background_music'))
+                bg_music.playpause()
+
+        if play_boss_music:
+            play_boss_music = not play_boss_music
+            if play_bg_music:
+                bg_music.playpause()
+                bg_music = sm.choose_sound(constants.get('sound').get('boss_fight'))
+                bg_music.playpause()
+            else:
+                bg_music = sm.choose_sound(constants.get('sound').get('boss_fight'))
+
+        if play_stage_music:
+            play_stage_music = not play_stage_music
+            if play_bg_music:
+                bg_music.playpause()
+                bg_music = sm.choose_sound(constants.get('sound').get('background_music'))
+                bg_music.playpause()
+            else:
+                bg_music = sm.choose_sound(constants.get('sound').get('background_music'))
 
         fov_recompute = False
 
@@ -244,7 +278,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
         if take_stairs and game_state == GameStates.PLAYERS_TURN:
             for entity in entities:
                 if entity.stairs and entity.x == player.x and entity.y == player.y:
-                    entities = game_map.next_floor(player, message_log, constants, constants.get('graphics'))
+                    entities, play_boss_music, play_stage_music = game_map.next_floor(player, message_log, constants, constants.get('graphics'))
                     fov_map = initialize_fov(game_map)
                     fov_recompute = True
                     libtcod.console_clear(con)
@@ -282,7 +316,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             elif game_state == GameStates.TARGETING:
                 player_turn_results.append({'targeting_cancelled': True})
             else:
-                return player, entities, game_map, message_log, game_state
+                return player, entities, game_map, message_log, game_state, bg_music, play_bg_music
 
         if fullscreen:
             libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
@@ -380,7 +414,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             else:
                 game_state = GameStates.PLAYERS_TURN
 
-    return player, entities, game_map, message_log, game_state
+    return player, entities, game_map, message_log, game_state, bg_music, play_bg_music
 
 
 if __name__ == '__main__':

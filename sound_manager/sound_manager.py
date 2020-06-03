@@ -27,7 +27,12 @@ def init_son():
             'thunder': ['sound_manager/thunder_sound/thunder_sound_1.wav',
                         'sound_manager/thunder_sound/thunder_sound_2.wav',
                         'sound_manager/thunder_sound/thunder_sound_3.wav'],
-            'background_music': ['sound_manager/background_music.wav'],
+            'background_music': ['sound_manager/background_music/background_music_1.wav',
+                                 'sound_manager/background_music/background_music_2.wav',
+                                 'sound_manager/background_music/background_music_3.wav',
+                                 'sound_manager/background_music/background_music_4.wav'],
+            'boss_fight': ['sound_manager/boss_fight/boss_fight_1.wav',
+                           'sound_manager/boss_fight/boss_fight_2.wav'],
             'hurt': ['sound_manager/hurt_sound.wav'],
             'level_up': ['sound_manager/level_up_sound.wav'],
             'potion_drinking': ['sound_manager/potion_drinking_sound.wav'],
@@ -70,3 +75,8 @@ class Son:
         else:
             self.son.stop()
             self.read = False
+
+if __name__ == '__main__':
+    pygame.mixer.init()
+    s = pygame.mixer.Sound('clean_stage.wav')
+    s.play(loops=-1)

@@ -73,18 +73,14 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
                 wall = game_map.tiles[x][y].block_sight
                 if visible:
                     if wall:
-                        #libtcod.console_set_char_background(con, x, y, libtcod.darker_flame, libtcod.BKGND_SET)
                         libtcod.console_put_char_ex(con, x, y, graphics.get('wall'), libtcod.white, libtcod.black)
                     else:
-                        #libtcod.console_set_char_background(con, x, y, libtcod.amber, libtcod.BKGND_SET)
                         libtcod.console_put_char_ex(con, x, y, graphics.get('floor'), libtcod.white, libtcod.black)
                     game_map.tiles[x][y].explored = True
                 elif game_map.tiles[x][y].explored:
                     if wall:
-                        #libtcod.console_set_char_background(con, x, y, libtcod.darker_sepia, libtcod.BKGND_SET)
                         libtcod.console_put_char_ex(con, x, y, graphics.get('wall'), libtcod.light_grey, libtcod.black)
                     else:
-                        #libtcod.console_set_char_background(con, x, y, libtcod.light_sepia, libtcod.BKGND_SET)
                         libtcod.console_put_char_ex(con, x, y, graphics.get('floor'), libtcod.light_grey, libtcod.black)
     entities_in_render_order = sorted(entities, key=lambda x: x.render_order.value)
 
@@ -158,7 +154,6 @@ def draw_entity(con, entity, fov_map, game_map):
     if libtcod.map_is_in_fov(fov_map, entity.x, entity.y) or (entity.stairs and game_map.tiles[entity.x][entity.y].explored):
         if entity.visible:
             libtcod.console_set_default_foreground(con, entity.color)
-            #libtcod.console_put_char(con, entity.x, entity.y, entity.char, libtcod.BKGND_NONE)
             libtcod.console_put_char_ex(con, entity.x, entity.y, entity.char, libtcod.white, libtcod.black)
     elif game_map.tiles[entity.x][entity.y].explored:
         libtcod.console_put_char_ex(con, entity.x, entity.y, 257, libtcod.light_grey, libtcod.black)

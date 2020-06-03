@@ -13,6 +13,7 @@ from map_objects.rectangle import Rect
 from map_objects.tile import Tile
 from render_functions import RenderOrder
 from random_utilis import monsters_per_room, items_per_room
+import sound_manager.sound_manager as sm
 
 '''
 Genere un objet GameMap de facon aleatoire
@@ -111,19 +112,13 @@ class GameMap:
             ('troll', 20, 3)
         ]
         monsters_to_pop = monsters_per_room(self.dungeon_level, monster_chances, room)
-        '''item_chances = [
-            ('healing_potion', 50, 1),
-            ('confusion_scroll', 25, 2),
-            ('lightning_scroll', 18, 4),
-            ('fireball_scroll', 7, 5)
-        ]'''
         item_chances = [
             ('healing_potion', 45, 1),
-            ('sword', 5, 1),
-            ('shield', 5, 1),
             ('confusion_scroll', 20, 2),
             ('lightning_scroll', 18, 4),
-            ('fireball_scroll', 7, 5)
+            ('fireball_scroll', 7, 5),
+            ('sword', 5, 1),
+            ('shield', 5, 1)
         ]
         items_to_pop = items_per_room(self.dungeon_level, item_chances)
 
@@ -193,16 +188,20 @@ class GameMap:
         self.dungeon_level += 1
         entities = [player]
         message_log.add_message(Message('Vous recuperez la moitie de votre vie.', libtcod.light_violet))
-        if self.dungeon_level % 2 == 0:
+        if self.dungeon_level % 5 == 0:
             self.tiles = self.initialize_tiles()
             entities = self.make_boss_map(entities, player)
             message_log.add_message(Message("C'est l'heure du du-du-du---DUEL !", libtcod.light_red))
+            play_boss_music = True
+            play_stage_music = False
         else:
             self.tiles = self.initialize_tiles()
             entities = self.make_map(constants['max_rooms'], constants['room_min_size'], constants['room_max_size'],
                           constants['map_width'], constants['map_height'], player, entities, graphics)
+            play_boss_music = False
+            play_stage_music = True
         player.fighter.heal(player.fighter.max_hp // 2)
-        return entities
+        return entities, play_boss_music, play_stage_music
 
     '''
     Cree la piece du boss et y place les entites
