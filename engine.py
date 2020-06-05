@@ -115,7 +115,8 @@ def main():
                 except FileNotFoundError:
                     show_load_error_message = True
             elif exit_game:
-                save_game(player, entities, game_map, message_log, game_state, score)
+                if score != (1, 0):
+                    save_game(player, entities, game_map, message_log, game_state, score)
                 sm.close_sound()
                 break
             # Lit ou arrete la musique de fond
