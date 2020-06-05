@@ -1,15 +1,37 @@
 import tcod as libtcod
+from read_scores import read_scores
 
-'''
+"""
 Cree les differents menus affiches au cours d'une partie
-'''
+"""
 
-'''
-Permet l'affichage d'un menu generique dont les lignes
-sont ecrites dans la variable 'options'
-'''
+
 def menu(con, header, options, width, screen_width, screen_height):
-    if len(options) > 26: raise ValueError('Plus de 26 items.')
+    """
+    Permet l'affichage d'un menu générique dont les lignes sont écrites dans la variable options
+
+    Parametres:
+    ----------
+    con : tcod.console
+        Console
+    header : str
+        Titre du menu
+    options : list
+        Liste des options du menu
+    width : int
+        Largeur du menu
+    screen_width : int
+        Largeur de l'écran
+    screen_height : int
+        Hauteur de l'écran
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
+    if len(options) > 26:
+        raise ValueError('Plus de 26 items.')
     header_height = libtcod.console_get_height_rect(con, 0, 0, width, screen_height, header)
     height = len(options) + header_height
     window = libtcod.console_new(width, height)
@@ -32,10 +54,30 @@ def menu(con, header, options, width, screen_width, screen_height):
     libtcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 0.7)
 
 
-'''
-Cree un menu de l'inventaire avec pour chaque item une option
-'''
 def inventory_menu(con, header, player, inventory_width, screen_width, screen_height):
+    """
+    Permet l'affichage de l'inventaire
+
+    Parametres:
+    ----------
+    con : tcod.console
+        Console
+    header : str
+        Titre du menu
+    player : Entity
+        Joueur
+    inventory_width : int
+        Largeur du menu
+    screen_width : int
+        Largeur de l'écran
+    screen_height : int
+        Hauteur de l'écran
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
     if len(player.inventory.items) == 0:
         options = ['Inventaire vide.']
     else:
@@ -47,38 +89,99 @@ def inventory_menu(con, header, player, inventory_width, screen_width, screen_he
                 options.append('{0} main gauche'.format(item.name))
             else:
                 options.append(item.name)
+    libtcod.console_print_ex(0, int(screen_width / 2), 10, libtcod.BKGND_NONE, libtcod.CENTER, "Inventaire : " +
+                             str(len(player.inventory.items)) + '/' + str(player.inventory.capacity))
     menu(con, header, options, inventory_width, screen_width, screen_height)
 
 
-'''
-Cree le menu principal du jeu
-'''
 def main_menu(con, background_image, screen_width, screen_height):
+    """
+    Permet l'affichage du menu principal
+
+    Parametres:
+    ----------
+    con : tcod.console
+        Console
+    background_image : fichier .png
+        Image de fond du menu
+    screen_width : int
+        Largeur de l'écran
+    screen_height : int
+        Hauteur de l'écran
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
+    black_screen(con, screen_width, screen_height)
     libtcod.image_blit_2x(background_image, 0, 0, 0)
     libtcod.console_set_default_foreground(0, libtcod.light_yellow)
     libtcod.console_print_ex(0, int(screen_width/2), 2, libtcod.BKGND_NONE,
-                             libtcod.CENTER, "Rogue doesn't like")
-    menu(con, '', ['Nouvelle partie', 'Continuer la partie precedente', '(Rage)quit', '', 'Son on/off', 'Commandes'], 24, screen_width, screen_height)
+                             libtcod.CENTER, "Rogue dislike")
+    menu(con, '', ['Nouvelle partie', 'Reprendre partie sauvegardee', '(Rage)quit', '', 'Son on/off', 'Commandes', 'Scores'], 32, screen_width, screen_height)
 
 
-'''
-Cree le menu de level-up
-'''
 def level_up_menu(con, header, player, menu_width, screen_width, screen_height):
+    """
+    Permet l'affichage d'un menu lors d'un level-up
+
+    Parametres:
+    ----------
+    con : tcod.console
+        Console
+    header : str
+        Titre du menu
+    player : Entity
+        Joueur
+    menu_width : int
+        Largeur du menu
+    screen_width : int
+        Largeur de l'écran
+    screen_height : int
+        Hauteur de l'écran
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
     options = ['Sante (+20 PV, actuellement {0})'.format(player.fighter.max_hp),
                'Force (+1 attaque, actuellement {0})'.format(player.fighter.power),
                'Defense (+1 defense, actuellement {0})'.format(player.fighter.defense)]
+    if len(player.inventory.items) <= 24:
+        options = options + ['', '            Bonus :', "Taille de l'inventaire : +2"]
+    elif len(player.inventory.items) == 25:
+        options = options + ['', '            Bonus :', "Taille de l'inventaire : +1"]
     menu(con, header, options, menu_width, screen_width, screen_height)
 
 
-'''
-Cree le menu d'info personnage
-'''
 def character_screen(player, character_screen_width, character_screen_height, screen_width, screen_height):
+    """
+    Permet l'affichage d'un menu d'infos personnage
+
+    Parametres:
+    ----------
+    player : Entity
+        Joueur
+    character_screen_width : int
+        largeur du menu
+    character_screen_height : int
+        Hauteur du menu
+    screen_width : int
+        Largeur de l'écran
+    screen_height : int
+        Hauteur de l'écran
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
     window = libtcod.console_new(character_screen_width, character_screen_height)
     libtcod.console_set_default_foreground(window, libtcod.white)
     libtcod.console_print_rect_ex(window, 0, 1, character_screen_width, character_screen_height, libtcod.BKGND_NONE,
-                                  libtcod.LEFT, "--- Informations d'@ ---")
+                                  libtcod.LEFT, "---- Informations ----")
     libtcod.console_print_rect_ex(window, 0, 2, character_screen_width, character_screen_height, libtcod.BKGND_NONE,
                                   libtcod.LEFT, 'Niveau : {0}'.format(player.level.current_level))
     libtcod.console_print_rect_ex(window, 0, 3, character_screen_width, character_screen_height, libtcod.BKGND_NONE,
@@ -96,24 +199,113 @@ def character_screen(player, character_screen_width, character_screen_height, sc
     libtcod.console_blit(window, 0, 0, character_screen_width, character_screen_height, 0, x, y, 1.0, 0.7)
 
 
-'''
-Cree la boite de messages defilants
-'''
 def message_box(con, header, width, screen_width, screen_height):
+    """
+    Permet l'affichage d'une boite de dialogue si le joueur veut charger une sauvegarde alors qu'il n'en a pas
+
+    Parametres:
+    ----------
+    con : tcod.console
+        Console
+    header : str
+        Message d'erreur
+    width : int
+        Largeur du menu
+    screen_width : int
+        Largeur de l'écran
+    screen_height : int
+        Hauteur de l'écran
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
     menu(con, header, [], width, screen_width, screen_height)
 
 
-'''
-Cree le menu avec les commandes disponibles
-'''
 def command_menu(con, background_image, screen_width, screen_height):
+    """
+    Permet l'affichage d'un menu avec les commandes de jeu
+
+    Parametres:
+    ----------
+    con : tcod.console
+        Console
+    background_image : fichier .png
+        Image de fond
+    screen_width : int
+        Largeur de l'écran
+    screen_height : int
+        Hauteur de l'écran
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
     libtcod.image_blit_2x(background_image, 0, 0, 0)
+    black_screen(con, screen_width, screen_height)
     libtcod.console_set_default_foreground(0, libtcod.light_yellow)
     libtcod.console_print_ex(0, int(screen_width / 2), 2, libtcod.BKGND_NONE,
-                             libtcod.CENTER, "Rogue doesn't like")
+                             libtcod.CENTER, "Rogue dislike")
     libtcod.console_print_ex(0, int(screen_width / 2), 10, libtcod.BKGND_NONE,
                              libtcod.CENTER, 'Comment jouer ?')
     menu(con, '', ['Deplacement : Fleches et Z,Q,S,D', 'Diagonale : A,E,W,C',
                    'Passer un tour : X', 'Attraper un item : G', 'Lacher un item : L',
                    'Prendre les escaliers > : Entree', '', 'Retour au jeu : Echap'],
          40, screen_width, screen_height)
+
+
+def scores_menu(con, background_image, screen_width, screen_height):
+    """
+    Permet l'affichage d'un tableau des scores
+
+    Parametres:
+    ----------
+    con : tcod.console
+        Console
+    background_image : fichier .png
+        Image de fond
+    screen_width : int
+        Largeur de l'écran
+    screen_height : int
+        Hauteur de l'écran
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
+    libtcod.image_blit_2x(background_image, 0, 0, 0)
+    black_screen(con, screen_width, screen_height)
+    libtcod.console_set_default_foreground(0, libtcod.light_yellow)
+    libtcod.console_print_ex(0, int(screen_width / 2), 2, libtcod.BKGND_NONE,
+                             libtcod.CENTER, "Rogue dislike")
+    libtcod.console_print_ex(0, int(screen_width / 2), 10, libtcod.BKGND_NONE,
+                             libtcod.CENTER, '*** Hall of Fame ***')
+    menu(con, '', read_scores(), 30, screen_width, screen_height)
+
+
+def black_screen(con, screen_width, screen_height):
+    """
+    Permet l'affichage d'un écran noir, servant à cacher le menu précédant pour en afficher un nouveau
+    en évitant toute superposition
+
+    Parametres:
+    ----------
+    con : tcod.console
+        Console
+    screen_width : int
+        Largeur de l'écran
+    screen_height : int
+        Hauteur de l'écran
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
+    libtcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
+    libtcod.console_set_default_background(con, libtcod.black)
+    libtcod.console_clear(con)

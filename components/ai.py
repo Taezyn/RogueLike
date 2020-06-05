@@ -2,18 +2,53 @@ import tcod as libtcod
 from random import randint
 from game_messages import Message
 
-'''
+
+"""
 Module definissant les différents comportements des monstres.
-'''
+"""
+
+
 class BasicMonster:
     """
     Comportement d'un monstre stantard : si il voit le joueur il se deplace jusqu'a 2 cases de lui
     S'il est a une case il l'attaque, sinon il ne fait rien
     """
+
     def __init__(self):
+        """
+        Initialise une IA basique
+
+        Parametres:
+        ----------
+        Aucun
+
+        Renvoi:
+        -------
+        Aucun
+
+        """
         self.ai_name = 'BasicMonster'
 
     def take_turn(self, target, fov_map, game_map, entities):
+        """
+        Joue le tour d'une IA basique
+
+        Parametres:
+        ----------
+        target : Entity
+            Cible de l'IA, c'est à dire le joueur
+        fov_map : tcod.map
+            Champ de vision de l'entité
+        game_map : GameMap
+            Carte actuellement utilisée
+        entities : list
+            Liste des entités de la carte
+
+        Renvoi:
+        -------
+        results : list
+            Liste des resultats. Utilisée dans engine
+        """
         results = []
         monster = self.owner
         if libtcod.map_is_in_fov(fov_map, monster.x, monster.y):
@@ -26,16 +61,52 @@ class BasicMonster:
 
 
 class ConfusedMonster:
+    """
+    Comportement d'un monstre confus par un parchemin : mouvement
+    aleatoire autour de sa position durant un nombre de tour donne
+    """
+
     def __init__(self, previous_ai, number_of_turns=10):
+        """
+        Initialise une IA confuse
+
+        Parametres:
+        ----------
+        previous_ai : BasicMonster ou Boss
+            IA précédente à garder en mémoire
+        number_of_turns: int
+            Nombre de tours de l'effet
+
+        Renvoi:
+        -------
+        Aucun
+
+        """
         self.ai_name = 'ConfusedMonster'
         self.previous_ai = previous_ai
         self.number_of_turns = number_of_turns
 
-    '''
-    Comportement d'un monstre confus par un parchemin : mouvement 
-    aleatoire autour de sa position durant un nombre de tour donne
-    '''
+
     def take_turn(self, target, fov_map, game_map, entities):
+        """
+        Joue le tour d'une IA basique
+
+        Parametres:
+        ----------
+        target : Entity
+            Cible de l'IA, c'est à dire le joueur. Non utilisé ici.
+        fov_map : tcod.map
+            Champ de vision de l'entité. Non utilisé ici.
+        game_map : GameMap
+            Carte actuellement utilisée
+        entities : list
+            Liste des entités de la carte
+
+        Renvoi:
+        -------
+        results : list
+            Liste des resultats. Utilisée dans engine
+        """
         results = []
         if self.number_of_turns > 0:
             random_x = self.owner.x + randint(0, 2) - 1
@@ -50,13 +121,49 @@ class ConfusedMonster:
 
 
 class Boss:
+    """
+    IA du boss, présent un niveau sur cinq
+    """
+
     def __init__(self):
+        """
+        Initialise une IA de Boss
+
+        Parametres:
+        ----------
+        Aucun
+
+        Renvoi:
+        -------
+        Aucun
+
+        """
         self.ai_name = 'Boss'
         self.turn = 1
         self.aoeing = False
         self.radius = 3
 
     def take_turn(self, target, fov_map, game_map, entities):
+        """
+        Joue le tour d'une IA basique
+
+        Parametres:
+        ----------
+        target : Entity
+            Cible de l'IA, c'est à dire le joueur
+        fov_map : tcod.map
+            Champ de vision de l'entité
+        game_map : GameMap
+            Carte actuellement utilisée
+        entities : list
+            Liste des entités de la carte
+
+        Renvoi:
+        -------
+        results : list
+            Liste des resultats. Utilisée dans engine
+
+        """
         results = []
         boss = self.owner
         if self.turn % 10 == 0 or self.aoeing:

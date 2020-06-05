@@ -1,11 +1,24 @@
 import tcod as libtcod
 from game_states import GameStates
 
-'''
+"""
 Ce module gere la lecture des touches du clavier et de la souris
-'''
+"""
 
 def handle_keys(key, game_state):
+    """
+    Définit le set touche auquel le programme doit réagir en fonction de l'état du jeu
+
+    Parametres:
+    ----------
+    key : tcod.key
+        Touche pressée
+
+    Renvoi:
+    -------
+    dict
+
+    """
     if game_state == GameStates.PLAYERS_TURN:
         return handle_player_turn_keys(key)
     elif game_state == GameStates.PLAYER_DEAD:
@@ -23,19 +36,37 @@ def handle_keys(key, game_state):
     return {}
 
 
-'''
-Permet d'annuler le ciblage d'un monstre avec un parchemin
-'''
 def handle_targeting_keys(key):
+    """
+    Permet d'annuler le ciblage en cours
+
+    Parametres:
+    ----------
+    key : tcod.key
+
+    Renvoi:
+    -------
+    dict
+
+    """
     if key.vk == libtcod.KEY_ESCAPE:
         return {'exit': True}
     return {}
 
 
-'''
-Etat courrant du jeu, permet de se deplacer et d'ouvrir les differents menus
-'''
 def handle_player_turn_keys(key):
+    """
+    Etat courant du jeu
+
+    Parametres:
+    ----------
+    key : tcod.key
+
+    Renvoi:
+    -------
+    dict
+
+    """
     key_char = chr(key.c)
     if key.vk == libtcod.KEY_UP or key_char == 'z':
         return {'move': (0, -1)}
@@ -74,10 +105,19 @@ def handle_player_turn_keys(key):
     return {}
 
 
-'''
-Choix de la stat a augmenter lors d'un level-UP
-'''
 def handle_level_up_menu(key):
+    """
+    Choix de la statistique à augmenter lors d'un level-up
+
+    Parametres:
+    ----------
+    key : tcod.key
+
+    Renvoi:
+    -------
+    dict
+
+    """
     if key:
         key_char = chr(key.c)
         if key_char == 'a':
@@ -89,19 +129,37 @@ def handle_level_up_menu(key):
     return {}
 
 
-'''
-Lorsque l'on affiche l'ecran du personnage on ne
-peut qu'appuyer sur echap pour quitter ce menu
-'''
 def handle_character_screen(key):
+    """
+    Sortir de l'écran d'info de personnage
+
+    Parametres:
+    ----------
+    key : tcod.key
+
+    Renvoi:
+    -------
+    dict
+
+    """
     if key.vk == libtcod.KEY_ESCAPE:
         return {'exit': True}
     return {}
 
-'''
-Gere la position du clic de la souris
-'''
+
 def handle_mouse(mouse):
+    """
+    Gère la position du curseur et les clics de la souris
+
+    Parametres:
+    ----------
+    mouse : tcod.mouse
+
+    Renvoi:
+    -------
+    dict
+
+    """
     (x, y) = (mouse.cx, mouse.cy)
     if mouse.lbutton_pressed:
         return {'left_click': (x, y)}
@@ -110,11 +168,19 @@ def handle_mouse(mouse):
     return {}
 
 
-'''
-Gere en permanance l'affichage de l'inventaire,
-le plein ecran et le menu prinipal
-'''
 def handle_player_dead_keys(key):
+    """
+    Gère l'affichage de l'inventaire et le plein écran
+
+    Parametres:
+    ----------
+    key : tcod.key
+
+    Renvoi:
+    -------
+    dict
+
+    """
     key_char = chr(key.c)
     if key_char == 'i':
         return {'show_character_screen': True}
@@ -125,10 +191,19 @@ def handle_player_dead_keys(key):
     return {}
 
 
-'''
-Permet de gerer la saisie d'un objet dans l'inventaire
-'''
 def handle_inventory_keys(key):
+    """
+    Gère le choix d'un item dans l'inventaire
+
+    Parametres:
+    ----------
+    key : tcod.key
+
+    Renvoi:
+    -------
+    dict
+
+    """
     index = key.c - ord('a')
     if index >= 0:
         return {'inventory_index': index}
@@ -141,10 +216,19 @@ def handle_inventory_keys(key):
     return {}
 
 
-'''
-Permet de gerer le choix dans le menu principal
-'''
 def handle_main_menu(key):
+    """
+    Gère le choix d'une option du menu principal
+
+    Parametres:
+    ----------
+    key : tcod.key
+
+    Renvoi:
+    -------
+    dict
+
+    """
     key_char = chr(key.c)
     if key_char == 'a':
         return {'new_game': True}
@@ -156,15 +240,26 @@ def handle_main_menu(key):
         return {'sound': True}
     elif key_char == 'e':
         return {'command': True}
+    elif key_char == 'f':
+        return {'scores': True}
     elif key.vk == libtcod.KEY_ESCAPE:
         return {'back_to_game': True}
     return {}
 
 
-'''
-Idem que pour le menu d'info personnage
-'''
 def handle_commands_menu(key):
+    """
+    Permet de sortir du menu des commandes
+
+    Parametres:
+    ----------
+    key : tcod.key
+
+    Renvoi:
+    -------
+    dict
+
+    """
     if key.vk == libtcod.KEY_ESCAPE:
         return {'back_to_game': True}
     return {}

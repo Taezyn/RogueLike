@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+# Recherche empirique d'une courbe de difficulté acceptable, en terme d'apparition de monstres
+
 C = np.linspace(1, 5, 5)
 N = np.linspace(1, 15, 15)
 M = []
@@ -12,7 +15,7 @@ for c in C:
 
 for c in C:
     plt.plot(N, M[int(c)-1], label=str(c))
-    
+
 plt.grid()
 plt.legend()
 plt.show()

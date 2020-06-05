@@ -3,15 +3,15 @@ from enum import Enum, auto
 from game_states import GameStates
 from menus import inventory_menu, level_up_menu, character_screen
 
-'''
+"""
 Ce module gere le rendu visuel des differentes entites
-'''
+"""
 
-'''
-Permet de gerer la priorite des affichages
-comme un systeme de calques
-'''
+
 class RenderOrder(Enum):
+    """
+    Permet de gerer la priorite des affichages comme un systeme de calques
+    """
     CORPSE = auto()
     ITEM = auto()
     STAIRS = auto()
@@ -20,10 +20,24 @@ class RenderOrder(Enum):
     DROP_INVENTORY = auto()
 
 
-'''
-Affiche le nom de l'entite sous le pointeur de la souris
-'''
 def get_names_under_mouse(mouse, entities, fov_map):
+    """
+    Affiche le nom de l'entité sous le pointeur de la souris, ainsi que ses principales caractéristiques
+
+    Parametres:
+    ----------
+    mouse : tcod.mouse
+
+    entities : list
+
+    fov_map : tcod.map
+
+
+    Renvoi:
+    -------
+    str
+
+    """
     (x, y) = (mouse.cx, mouse.cy)
     entities_under_mouse = [entity for entity in entities
              if entity.x == x and entity.y == y and libtcod.map_is_in_fov(fov_map, entity.x, entity.y)]
@@ -37,10 +51,36 @@ def get_names_under_mouse(mouse, entities, fov_map):
     return names.capitalize()
 
 
-'''
-Cree une barre de progression, utilisee pour l'XP ou les HP
-'''
 def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_color):
+    """
+    Crée une barre de progression, utilisée pour l'XP ou les HP
+
+    Parametres:
+    ----------
+    panel : tcod.console
+        Console affichant la barre
+    x : int
+        Abscisse sur le panel de la barre
+    y : int
+        Ordonnée sur le panel de la barre
+    total_width : int
+        Longueur de la barre
+    name : str
+        Nom
+    value : int
+        Valeur courante
+    maximum : int
+        Valeur maximum
+    bar_color: tcod.color
+        Couleur de la barre
+    back_color : tcod.color
+        Couleur de fond de la barre
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
     bar_width = int(float(value) / maximum * total_width)
     libtcod.console_set_default_background(panel, back_color)
     libtcod.console_rect(panel, x, y, total_width, 1, False, libtcod.BKGND_SCREEN)
@@ -53,19 +93,75 @@ def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_c
 
 
 def load_customfont():
-    # The index of the first custom tile in the file
+    """
+    Charge une texture spécifique
+
+    Parametres:
+    ----------
+    Aucun
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
+    # Index de la première tuile personnalisée
     a = 256
-    # The "y" is the row index, here we load the sixth row in the font file. Increase the "6" to load any new rows from the file
+    # The "y" is the row index, here we load the sixth row in the font file.
+    # Increase the "6" to load any new rows from the file
     for y in range(5, 6):
         libtcod.console_map_ascii_codes_to_font(a, 32, 0, y)
         a += 32
 
 
-'''
-Affiche les pieces, les entites, les menus et tous les elements du jeu
-'''
 def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, message_log, screen_width,
                screen_height, bar_width, panel_height, panel_y, mouse, colors, game_state, graphics):
+    """
+    Affiche les pièces, les entites, les menus, et tous les éléments du jeu
+
+    Parametres:
+    ----------
+    con : tcod.console
+
+    panel : tcod.console
+
+    entities : list
+
+    player : Entity
+
+    game_map : GameMap
+
+    fov_map : tcod.map
+
+    fov_recompute : bool
+
+    message_log : MessageLog
+
+    screen_width : int
+
+    screen_height : int
+
+    bar_width : int
+
+    panel_heidght : int
+
+    panel_y : int
+
+    mouse : tcod.mouse
+
+    colors : tcod.colors
+        Désormais non utilisé
+
+    game_state : int
+
+    graphics : dict
+
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
     if fov_recompute:
         for y in range(game_map.height):
             for x in range(game_map.width):
@@ -147,10 +243,26 @@ def render_all(con, panel, entities, player, game_map, fov_map, fov_recompute, m
         character_screen(player, 30, 10, screen_width, screen_height)
 
 
-'''
-Affiche une entite visible
-'''
 def draw_entity(con, entity, fov_map, game_map):
+    """
+    Affiche une entité visible
+
+    Parametres:
+    ----------
+    con : tcod.console
+
+    entity : Entity
+
+    fov_map : tcod.map
+
+    game_map : GameMap
+
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
     if libtcod.map_is_in_fov(fov_map, entity.x, entity.y) or (entity.stairs and game_map.tiles[entity.x][entity.y].explored):
         if entity.visible:
             libtcod.console_set_default_foreground(con, entity.color)
@@ -158,10 +270,22 @@ def draw_entity(con, entity, fov_map, game_map):
     elif game_map.tiles[entity.x][entity.y].explored:
         libtcod.console_put_char_ex(con, entity.x, entity.y, 257, libtcod.light_grey, libtcod.black)
 
-'''
-Permet au changement d'etage d'effacer l'affichage des items, monstres et cadavres
-'''
+
 def clear_entity(con, entity):
+    """
+    Permet au changement d'étage d'effacer l'affichage des entitiés
+
+    Parametres:
+    ----------
+    con : tcod.console
+
+    entity : Entity
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
     libtcod.console_put_char(con, entity.x, entity.y, ' ', libtcod.BKGND_NONE)
 
 
@@ -169,5 +293,19 @@ def clear_entity(con, entity):
 Efface toutes les entites de l'ecran
 '''
 def clear_all(con, entities):
+    """
+    Efface toutes les entités de l'écran
+
+    Parametres:
+    ----------
+    con : tcod.console
+
+    entities : list
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
     for entity in entities:
         clear_entity(con, entity)

@@ -18,12 +18,10 @@ class TestTile(ut.TestCase):
 
 class TestGameMap(ut.TestCase):
     def testMakeMap(self):
-        carte = game_map.GameMap(30, 30)
+        #carte = game_map.GameMap(30, 30)
         constants = initialize_new_game.get_constants()
-        new_game = initialize_new_game.get_game_variables(constants)
-        player = new_game[0]
-        entities = new_game[1]
-        carte.make_map(5, 5, 8, 20, 20, player, entities)
+        player, entities, game_map, message_log, game_state = initialize_new_game.get_game_variables(constants)
+        game_map.make_map(5, 5, 8, 20, 20, player, entities, constants.get('graphics'))
         self.assertNotEqual(len(entities), 1)
         for e in entities:
             if e.fighter:
@@ -35,7 +33,7 @@ class TestGameMap(ut.TestCase):
         for t in tiles:
             for t2 in t:
                 self.assertIsInstance(t2, tile.Tile)
-                self.assertTrue(not(t2.explored))
+                self.assertTrue(not t2.explored)
 
 
 class TestGameMessages(ut.TestCase):
@@ -46,8 +44,6 @@ class TestGameMessages(ut.TestCase):
         self.assertTrue(message_log.messages == [])
         self.assertTrue(message_log.width <= constants.get('screen_width'))
         self.assertTrue(message_log.height <= constants.get('screen_height'))
-
-
 
 
 if __name__ == "__main__":

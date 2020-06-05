@@ -1,19 +1,42 @@
 import tcod as libtcod
 from game_messages import Message
 
-'''
-Definit la classe inventaire comme une liste d'une longueur inferieure a un montant donne
-'''
 
 class Inventory:
-    def __init__(self, capacity):
+    """
+    Definit la classe inventaire comme une liste d'une longueur inferieure a un montant donne
+    """
+
+    def __init__(self, capacity=5):
+        """
+        Initialise un inventaire
+
+        Parametres:
+        ----------
+        capacity : int
+
+        Renvoi:
+        -------
+        Aucun
+
+        """
         self.capacity = capacity
         self.items = []
 
-    '''
-    Ajoute un item à la fin de l'inventaire s'il reste de la place
-    '''
     def add_item(self, item):
+        """
+        Ajoute un item à l'inventaire, s'il reste de la place
+
+        Parametres:
+        ----------
+        item : Entity
+
+        Renvoi:
+        -------
+        results : list
+            Liste des résultats. Utilisée dans engine.
+
+        """
         results = []
         if len(self.items) >= self.capacity:
             results.append({
@@ -28,10 +51,41 @@ class Inventory:
             self.items.append(item)
         return results
 
-    '''
-    Utilise un item de l'inventaire
-    '''
+    def add_capacity(self, to_add):
+        """
+        Ajoute un certain nombre d'emplacements à l'inventaire, s'il reste de la place
+
+        Parametres:
+        ----------
+        to_add : int
+
+        Renvoi:
+        -------
+        Aucun
+
+        """
+        if self.capacity + to_add <= 26:
+            self.capacity += to_add
+        else:
+            self.capacity = 26
+
     def use(self, item_entity, **kwargs):
+        """
+        Utilise un item de l'inventaire.
+
+        Parametres:
+        ----------
+        item_entity : Entity
+            Item à utiliser
+        **kwargs : dict
+            Contient les informations propres à l'item, notamment son effet
+
+        Renvoi:
+        -------
+        results : list
+            Liste des résultats. Utilisée dans engine.
+
+        """
         results = []
         item_component = item_entity.item
         if item_component.use_function is None:
@@ -52,16 +106,35 @@ class Inventory:
                 results.extend(item_use_results)
         return results
 
-    '''
-    Supprime un item utilise
-    '''
     def remove_item(self, item):
+        """
+        Supprime un item de l'inventaire
+
+        Parametres:
+        ----------
+        item : Entity
+
+        Renvoi:
+        -------
+        Aucun
+
+        """
         self.items.remove(item)
 
-    '''
-    Pose un item au sol sans l'utiliser
-    '''
     def drop_item(self, item):
+        """
+        Pose un item à terre
+
+        Parametres:
+        ----------
+        item : Entity
+
+        Renvoi:
+        -------
+        results : list
+            Liste des résultats. Utilisée dans engine.
+
+        """
         results = []
         if self.owner.equipment.main_hand == item or self.owner.equipment.off_hand == item:
             self.owner.equipment.toggle_equip(item)

@@ -3,13 +3,53 @@ import math
 from render_functions import RenderOrder
 from components.item import Item
 
-'''
-Tous les objets python intervenant dans le jeu sont definis comme des entites, sauf le sol
-'''
 
 class Entity:
+    """
+    Tous les objets python intervenant dans le jeu sont définis comme des entités, sauf le sol
+    """
     def __init__(self, x, y, char, color, name, blocks=False, render_order=RenderOrder.CORPSE, fighter=None, ai=None,
                  item=None, inventory=None, stairs=None, level=None, visible=True, equipment=None, equippable=None):
+        """
+        Crée une entité avec différents attributs, selon son type
+
+        Parametres:
+        ----------
+        x : int
+            Abscisse de l'entité
+        y : int
+            Ordonnée de l'entité
+        char : int
+            Aspect graphique (correspondant à une zone de l'image textures.png)
+        color : tcod.color
+            Couleur de l'entité
+        blocks : bool
+            L'entité est-elle bloquante ?
+        render_order : int
+            Priorité de rendu graphique
+        fighter : Fighter ou None
+            Composant Fighter de l'entité
+        ai : BasicMonster ou Boss ou Non
+            IA de l'entité
+        item : Item ou None
+            Si l'entité est un item
+        inventory : Inventory ou Non
+            Si l'entité est un inventaire
+        stairs : Stairs ou None
+            Si l'entité est un escalier
+        level : Level ou None
+            Si l'entité possède une barre d'XP
+        visible : bool
+            Si l'entité est visible
+        equipment : Equipment ou None
+            Si l'entité peut s'équiper d'item
+        equippable : Equippable ou None
+            Si l'entité peut être équipée
+
+        Renvoi:
+        -------
+        Aucun
+        """
         self.x = x
         self.y = y
         self.char = char
@@ -50,18 +90,45 @@ class Entity:
                 item = Item()
                 self.item = item
                 self.item.owner = self
-    '''
-    Fait bouger une entite mobile
-    '''
+
     def move(self, dx, dy):
+        """
+        Déplace une entité
+
+        Parametres:
+        ----------
+        dx : int
+
+        dy : int
+
+        Renvoi:
+        -------
+        Aucun
+
+        """
         self.x += dx
         self.y += dy
 
-    '''
-    Fait avancer une entite mobile vers une cible si elle
-    n'est pas bloquee par le decor ou une autre entite
-    '''
     def move_towards(self, target_x, target_y, game_map, entities):
+        """
+        Fait avancer une entité vers une cible, si le chemin n'est pas bloqué
+
+        Parametres:
+        ----------
+        target_x : int
+
+        target_y : int
+
+        game_map : GameMap
+
+        entities : list
+
+
+        Renvoi:
+        -------
+        Aucun
+
+        """
         dx = target_x - self.x
         dy = target_y - self.y
         distance = math.sqrt(dx ** 2 + dy ** 2)
@@ -71,26 +138,62 @@ class Entity:
                 get_blocking_entities_at_location(entities, self.x + dx, self.y + dy)):
             self.move(dx, dy)
 
-    '''
-    Renvoie la distance entre deux entites
-    '''
+
     def distance_to(self, other):
+        """
+        Renvoie la distance entre deux entités
+
+        Parametres:
+        ----------
+        other : Entity
+
+        Renvoi:
+        -------
+        float
+
+        """
         dx = other.x - self.x
         dy = other.y - self.y
         return math.sqrt(dx ** 2 + dy ** 2)
 
-    '''
-    Renvoie la distance entre une entite et une coordonnee
-    '''
+
     def distance(self, x, y):
+        """
+        Renvoie la distance entre une entité et une coordonnée
+
+        Parametres:
+        ----------
+        x : int
+
+        y : int
+
+
+        Renvoi:
+        -------
+        float
+
+        """
         return math.sqrt((x - self.x) ** 2 + (y - self.y) ** 2)
 
-    '''
-    Utilise l'algorithme de recherche de chemin A* pour
-    le deplacement d'un monstre vers le joueur
-    Est appelé dans ai.BasicMonster
-    '''
     def move_astar(self, target, entities, game_map):
+        """
+        Utilise l'algorithme de recherche de chemin A* pour le déplacement d'un monstre
+        en direction du joueur. Est appelé dans ai.BasicMonster
+
+        Parametres:
+        ----------
+        target : Entity
+
+        entities : list
+
+        game_map : GameMap
+
+
+        Renvoi:
+        -------
+        Aucun
+
+        """
         fov = libtcod.map_new(game_map.width, game_map.height)
         for y1 in range(game_map.height):
             for x1 in range(game_map.width):
@@ -111,11 +214,19 @@ class Entity:
         libtcod.path_delete(my_path)
 
 
-'''
-Teste si toutes les entites dotees d'une ai (donc les monstres)
-d'une liste d'entites donnee sont mortes
-'''
 def all_dead(entities):
+    """
+    Teste si toutes les entités dotés d'IA sont mortes
+
+    Parametres:
+    ----------
+    entities : list
+
+    Renvoi:
+    -------
+    bool
+
+    """
     for dead_entity in entities:
         if dead_entity.ai:
             if dead_entity.fighter.hp > 0:
@@ -123,10 +234,25 @@ def all_dead(entities):
     return True
 
 
-'''
-Teste si la destination souhaitee d'un fighter est disponible ou non
-'''
 def get_blocking_entities_at_location(entities, destination_x, destination_y):
+    """
+    Teste si la destination souhaitée est disponible ou non
+
+    Parametres:
+    ----------
+    entities : list
+
+    destination_x : int
+
+    destination_y : int
+
+
+    Renvoi:
+    -------
+    Entity ou None :
+        Renvoie l'entité qui bloque le chemin s'il y en a une.
+
+    """
     for entity in entities:
         if entity.blocks and entity.x == destination_x and entity.y == destination_y:
             return entity

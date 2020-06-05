@@ -7,8 +7,8 @@ from game_states import GameStates
 from input_handlers import handle_keys, handle_mouse, handle_main_menu
 from render_functions import clear_all, render_all, load_customfont
 from loader_functions.initialize_new_game import get_constants, get_game_variables
-from loader_functions.data_loaders import load_game, save_game
-from menus import main_menu, message_box, command_menu
+from loader_functions.data_loaders import load_game, save_game, save_score, delete_save
+from menus import main_menu, message_box, command_menu, scores_menu
 import pygame
 import sound_manager.sound_manager as sm
 
@@ -20,8 +20,10 @@ import sound_manager.sound_manager as sm
 # pyagme : pip install pygame
 # libtcod : pip install tcod
 # shelve : pip install shelve
-# Il est egalement necessaire de telecharger le package sound_manager a placer
-# a la racine du dossier : https://drive.google.com/file/d/1QoRqnRn0m8dKuj2Xk8YpXeL8tOeouQtu/view?usp=sharing
+# Il est egalement necessaire de telecharger le package sound_manager a placer a la racine du dossier.
+# Télécharger le package sound_manager :
+# - Version .rar : https://drive.google.com/file/d/1HIt2-If7O4nXDUnTfltCxX9e-nw3i36A/view?usp=sharing
+# - Github : https://github.com/Taezyn/RogueLike/tree/master
 #############################################################################################################
 # Ce module gere l'execution du jeu dans son ensemble.
 # Les explications seront donnees au sein meme des fonction afin
@@ -30,6 +32,20 @@ import sound_manager.sound_manager as sm
 
 
 def main():
+    """
+    L'une des deux fonctions principales du jeu, elle est appelée une seule et unique fois : au démarrage du jeu.
+    Elle a la charge de gérer le choix d'affichage des menus et les réactions aux inputs du joueur.
+    Lorsque le joueur quitte un menu pour retourner en jeu, elle appelle la deuxième fonction de ce module : play_game
+
+    Parametres:
+    ----------
+    Aucun
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
     # Initialise le jeu en commencant par afficher le menu principal
     constants = get_constants()
     # The font has 32 chars in a row, and there's a total of 10 rows. Increase the "10" when you add new rows to the sample font file
@@ -50,6 +66,7 @@ def main():
     show_main_menu = True
     show_load_error_message = False
     show_command_menu = False
+    show_scores = False
 
     main_menu_background_image = libtcod.image_load('menu_background.png')
 
@@ -58,7 +75,9 @@ def main():
 
     key = libtcod.Key()
     mouse = libtcod.Mouse()
-    
+
+    score = (1, 0)
+
     while not libtcod.console_is_window_closed():
         libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
         # Si le menu principal est affiche :
@@ -77,23 +96,26 @@ def main():
             sound = action.get('sound')
             command = action.get('command')
             back_to_game = action.get('back_to_game')
+            scores = action.get('scores')
 
             if show_load_error_message and (new_game or load_saved_game or exit_game):
                 show_load_error_message = False
             # Cree une nouvelle partie
             elif new_game:
+                if score != (1, 0):
+                    save_score(score)
                 player, entities, game_map, message_log, game_state = get_game_variables(constants)
                 game_state = GameStates.PLAYERS_TURN
                 show_main_menu = False
             # Charge une partie existante, si possible
             elif load_saved_game:
                 try:
-                    player, entities, game_map, message_log, game_state = load_game()
+                    player, entities, game_map, message_log, game_state, score = load_game()
                     show_main_menu = False
                 except FileNotFoundError:
                     show_load_error_message = True
             elif exit_game:
-                save_game(player, entities, game_map, message_log, game_state)
+                save_game(player, entities, game_map, message_log, game_state, score)
                 sm.close_sound()
                 break
             # Lit ou arrete la musique de fond
@@ -103,27 +125,95 @@ def main():
             elif command:
                 show_command_menu = True
                 show_main_menu = False
-            elif back_to_game and show_main_menu:
+            elif back_to_game and show_main_menu and game_state != GameStates.PLAYER_DEAD:
                 show_main_menu = False
+            elif scores:
+                show_main_menu = False
+                show_scores = True
 
+        # Affiche le menu des commandes
         elif show_command_menu:
             action = handle_main_menu(key)
             command_menu(con, main_menu_background_image, constants['screen_width'], constants['screen_height'])
             libtcod.console_flush()
             back_to_game = action.get('back_to_game')
             if back_to_game:
-                show_main_menu = False
+                show_main_menu = True
                 show_command_menu = False
+                libtcod.console_clear(con)
+
+        # Affiche les trois meilleurs scores et le dernier
+        elif show_scores:
+            action = handle_main_menu(key)
+            scores_menu(con, main_menu_background_image, constants['screen_width'], constants['screen_height'])
+            libtcod.console_flush()
+            back_to_game = action.get('back_to_game')
+            if back_to_game:
+                show_main_menu = True
+                show_scores = False
                 libtcod.console_clear(con)
 
         # Lance une partie
         else:
             libtcod.console_clear(con)
-            player, entities, game_map, message_log, game_state, bg_music, play_bg_music = play_game(player, entities, game_map, message_log, game_state, con, panel, constants, bg_music, play_bg_music)
-            show_main_menu = True
+            player, entities, game_map, message_log, game_state, bg_music, play_bg_music, score = play_game(player, entities, game_map, message_log, game_state, con, panel, constants, bg_music, play_bg_music, score)
+            if game_state == GameStates.PLAYER_DEAD:
+                show_scores = True
+            else:
+                show_main_menu = True
 
 
-def play_game(player, entities, game_map, message_log, game_state, con, panel, constants, bg_music, play_bg_music):
+def play_game(player, entities, game_map, message_log, game_state, con, panel, constants, bg_music, play_bg_music, score):
+    """
+    Cette fonction est le squelette du jeu. Elle utilise, directement ou indirectement, tous les autres modules de
+    ce projet. Elle est chargée de l'éxécution des commandes du joueur lorsqu'il est en jeu. Elle est constituée
+    d'une boucle while infinie (tant que la fenêtre est ouverte) qui teste tous les cas possibles à chaque itération.
+
+    Parametres:
+    ----------
+    player : Entity
+        Le joueur
+    entities : list
+        Liste des entités présentes (visibiles ou non) à ce niveau
+    game_map : GameMap
+        Plateau de jeu
+    message_log : MessageLog
+        Boîte de dialogue, feedback au joueur
+    game_state : int
+        Désormais inutilisé dans cette fonction
+    con : tcod.console
+        Console du jeu
+    panel : tcod.console
+        Console interface
+    constants : dict
+        Dictionnaire contenant toutes les constantes du jeu
+    bg_music : fichier .wav
+        Musique de fond
+    play_bg_music : bool
+        Faut-il jouer la musique de fond ?
+    score : int
+        Score actuel du joueur (visible qu'à sa mort)
+
+    Renvoi:
+    -------
+    player : Entity
+        Le joueur
+    entities : list
+        Liste des entités présentes (visibiles ou non) à ce niveau
+    game_map : GameMap
+        Plateau de jeu
+    message_log : MessageLog
+        Boîte de dialogue, feedback au joueur
+    game_state : int
+        Désormais inutilisé dans cette fonction
+    bg_music : fichier .wav
+        Musique de fond
+    play_bg_music : bool
+        Faut-il jouer la musique de fond ?
+    score : int
+        Score actuel du joueur (visible qu'à sa mort)
+
+    """
     sword_sounds = constants.get('sound').get('sword')
     hurt_sound = sm.Son(constants.get('sound').get('hurt')[0])
     clean_stage_sound = sm.Son(constants.get('sound').get('clean_stage')[0])
@@ -228,13 +318,9 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                     sword = sm.choose_sound(sword_sounds)
                     sword.playpause()
                     player_turn_results.extend(attack_results)
-                    if all_dead(entities):
-                        player.level.add_xp(0.1 * player.level.level_up_base)
-                        clean_stage_sound.playpause()
-                        message_log.add_message(Message('Plus de monstres, bonus 10% XP', libtcod.yellow))
-                        for entity in entities:
-                            if entity.stairs:
-                                entity.visible = True
+                    for entity in entities:
+                        if entity.stairs:
+                            entity.visible = True
                 else:
                     player.move(dx, dy)
                 game_state = GameStates.ENEMY_TURN
@@ -282,6 +368,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                     fov_map = initialize_fov(game_map)
                     fov_recompute = True
                     libtcod.console_clear(con)
+                    score = (score[0] + 1, score[1])
                     break
             else:
                 message_log.add_message(Message("Il n'y a pas d'escaliers ici.", libtcod.yellow))
@@ -294,6 +381,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                 player.fighter.base_power += 1
             elif level_up == 'def':
                 player.fighter.base_defense += 1
+            player.inventory.add_capacity(2)
             game_state = previous_game_state
 
         if show_character_screen:
@@ -316,7 +404,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             elif game_state == GameStates.TARGETING:
                 player_turn_results.append({'targeting_cancelled': True})
             else:
-                return player, entities, game_map, message_log, game_state, bg_music, play_bg_music
+                return player, entities, game_map, message_log, game_state, bg_music, play_bg_music, score
 
         if fullscreen:
             libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
@@ -342,6 +430,15 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                     message, game_state = kill_player(dead_entity)
                 else:
                     message = kill_monster(dead_entity)
+                    if all_dead(entities):
+                        leveled_up = player.level.add_xp(0.1 * player.level.level_up_base)
+                        clean_stage_sound.playpause()
+                        message_log.add_message(Message('Plus de monstres, bonus 10% XP', libtcod.yellow))
+                        if leveled_up:
+                            message_log.add_message(Message('Level UP : niveau {0} atteint !'.format(
+                                player.level.current_level), libtcod.yellow))
+                            previous_game_state = game_state
+                            game_state = GameStates.LEVEL_UP
                 message_log.add_message(message)
 
             if item_added:
@@ -374,10 +471,11 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
 
             if targeting_cancelled:
                 game_state = previous_game_state
-                message_log.add_message(Message('Targeting cancelled'))
+                message_log.add_message(Message('Ciblage annule'))
 
             if xp:
                 leveled_up = player.level.add_xp(xp)
+                score = (score[0], score[1] + xp)
                 message_log.add_message(Message('+{0} XP'.format(xp)))
                 if leveled_up:
                     message_log.add_message(Message('Level UP : niveau {0} atteint !'.format(
@@ -404,6 +502,8 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                         if dead_entity:
                             if dead_entity == player:
                                 message, game_state = kill_player(dead_entity)
+                                save_score(score)
+                                delete_save()
                             else:
                                 message = kill_monster(dead_entity)
                             message_log.add_message(message)
@@ -414,7 +514,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             else:
                 game_state = GameStates.PLAYERS_TURN
 
-    return player, entities, game_map, message_log, game_state, bg_music, play_bg_music
+    return player, entities, game_map, message_log, game_state, bg_music, play_bg_music, score
 
 
 if __name__ == '__main__':

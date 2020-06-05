@@ -13,32 +13,84 @@ from map_objects.rectangle import Rect
 from map_objects.tile import Tile
 from render_functions import RenderOrder
 from random_utilis import monsters_per_room, items_per_room
-import sound_manager.sound_manager as sm
 
-'''
-Genere un objet GameMap de facon aleatoire
-'''
 
 class GameMap:
+    """
+    Plateau de jeu sur lequel le joueur se meut, créée de façon procédurale
+    """
+
     def __init__(self, width, height, dungeon_level=1):
+        """
+        Crée un plateau de jeu rempli de Tiles bloquantes et inexplorées
+
+        Parametres:
+        ----------
+        width : int
+
+        height : int
+
+        dungeon_level : int
+
+
+        Renvoi:
+        -------
+        Aucun
+
+        """
         self.width = width
         self.height = height
         self.tiles = self.initialize_tiles()
         self.dungeon_level = dungeon_level
 
-    '''
-    Remplis entièrement la carte de tuiles
-    '''
     def initialize_tiles(self):
+        """
+        Rempli entièremement le plateau de Tiles bloquantes
+
+        Parametres:
+        ----------
+        Aucun
+
+        Renvoi:
+        -------
+        tiles : list
+            Liste de listes décrivant le terrain dans son ensemble
+
+        """
         tiles = [[Tile(True) for y in range(self.height)] for x in range(self.width)]
         return tiles
 
-    '''
-    Cree un nombre de salles inferieur a un nombre fixe (s'arrete lorsque la generation aleatoire cree
-    deux pieces qui s'intersectent. Place le joueur dans la premiere d'entre elles, puis connecte la nouvelle 
-    salle avec la precedente et enfin ajoute les escaliers a la liste des entites du jeu
-    '''
     def make_map(self, max_rooms, room_min_size, room_max_size, map_width, map_height, player, entities, graphics):
+        """
+        Cree un nombre de salles inferieur a un nombre fixe (s'arrete lorsque la generation aleatoire cree
+        deux pieces qui s'intersectent. Place le joueur dans la premiere d'entre elles, puis connecte la nouvelle
+        salle avec la precedente et enfin ajoute les escaliers a la liste des entites du jeu
+
+        Parametres:
+        ----------
+        max_rooms : int
+
+        room_min_size : int
+
+        room_max_size : int
+
+        map_width : int
+
+        map_height : int
+
+        player : Entity
+
+        entities : list
+
+        graphics : dict
+
+
+        Renvoi:
+        -------
+        entities : list
+            retourne la liste des entités avec les monstres et les objets placés
+
+        """
         rooms = []
         num_rooms = 0
         center_of_last_room_x = None
@@ -49,9 +101,11 @@ class GameMap:
             x = randint(0, map_width - w - 1)
             y = randint(0, map_height - h - 1)
             new_room = Rect(x, y, w, h)
+            # Coupe la boucle si la pièce créée intersecte d'autres déjà créées
             for other_room in rooms:
                 if new_room.intersect(other_room):
                     break
+            # Si la pièce créée est valide, la relie à la précédente et place les entités
             else:
                 self.create_room(new_room)
                 (new_x, new_y) = new_room.center()
@@ -77,36 +131,92 @@ class GameMap:
         entities.append(down_stairs)
         return entities
 
-    '''
-    Rends les blocs d'une piece donnee non bloquants et permet de voir au travers
-    '''
     def create_room(self, room):
+        """
+        Crée une salle en rendant les Tile intérieures passantes.
+
+        Parametres:
+        ----------
+        room : Rect
+            La pièce avec ses dimensions
+
+        Renvoi:
+        -------
+        Aucun
+
+        """
         for x in range(room.x1 + 1, room.x2):
             for y in range(room.y1 + 1, room.y2):
                 self.tiles[x][y].blocked = False
                 self.tiles[x][y].block_sight = False
 
-    '''
-    Cree un couloir horizontal
-    '''
     def create_h_tunnel(self, x1, x2, y):
+        """
+        Créer un couloir horizontal
+
+        Parametres:
+        ----------
+        x1 : int
+
+        x2 : int
+
+        y : int
+
+
+        Renvoi:
+        -------
+        Aucun
+
+        """
         for x in range(min(x1, x2), max(x1, x2) + 1):
             self.tiles[x][y].blocked = False
             self.tiles[x][y].block_sight = False
 
-    '''
-    Cree un couloir vertical
-    '''
     def create_v_tunnel(self, y1, y2, x):
+        """
+        Créer un couloir vertical
+
+        Parametres:
+        ----------
+        y1 : int
+
+        y2 : int
+
+        x : int
+
+
+        Renvoi:
+        -------
+        Aucun
+
+        """
         for y in range(min(y1, y2), max(y1, y2) + 1):
             self.tiles[x][y].blocked = False
             self.tiles[x][y].block_sight = False
 
-    '''
-    Place un nombre de monstres et d'items donne en fonction de l'etage du donjon
-    en veillant a ne pas superposer deux entites, puis les ajoute a la liste des entites du jeu
-    '''
     def place_entities(self, room, entities, graphics):
+        """
+        Place les monstres et les objets dans la room en cours de construction, en veillant
+        à ne pas superposer des entités, puis ajoute le tout à la liste des entités.
+        Le nombre de monstres et d'ojbets dépend de l'étage du donjon
+
+        Parametres:
+        ----------
+        room : Rect
+
+        entities : list
+
+        graphics : dict
+
+
+        Renvoi:
+        -------
+        entities : list
+
+        """
+
+        # monster_chances et item_chances définissent les entités à faire apparaître
+        # avec leurs chances d'apparition et leurs poids respectifs
         monster_chances = [
             ('orc', 80, 1),
             ('troll', 20, 3)
@@ -172,19 +282,50 @@ class GameMap:
                 entities.append(item)
         return entities
 
-    '''
-    Lit si la coordonnee (x, y) est bloquee ou non
-    '''
     def is_blocked(self, x, y):
+        """
+        Lit si la coordonnée x,y est bloquée ou non
+
+        Parametres:
+        ----------
+        x : int
+
+        y : int
+
+
+        Renvoi:
+        -------
+        bool
+
+        """
         if self.tiles[x][y].blocked:
             return True
         return False
 
-    '''
-    Fait passer le joueur a l'etage suivant, lui rend la 
-    moitie de sa vie et genere une nouvelle carte.
-    '''
     def next_floor(self, player, message_log, constants, graphics):
+        """
+        Fait passer à l'étage suivant et crée une map (boss ou standart) en fonction de l'étage
+
+        Parametres:
+        ----------
+        player : Entity
+
+        message_log : MessageLog
+
+        constants : dict
+
+        graphics : dict
+
+
+        Renvoi:
+        -------
+        entities : list
+
+        play_boss_music : bool
+
+        play_stage_music : bool
+
+        """
         self.dungeon_level += 1
         entities = [player]
         message_log.add_message(Message('Vous recuperez la moitie de votre vie.', libtcod.light_violet))
@@ -199,14 +340,29 @@ class GameMap:
             entities = self.make_map(constants['max_rooms'], constants['room_min_size'], constants['room_max_size'],
                           constants['map_width'], constants['map_height'], player, entities, graphics)
             play_boss_music = False
-            play_stage_music = True
+            if self.dungeon_level % 5 == 1:
+                play_stage_music = True
+            else:
+                play_stage_music = False
         player.fighter.heal(player.fighter.max_hp // 2)
         return entities, play_boss_music, play_stage_music
 
-    '''
-    Cree la piece du boss et y place les entites
-    '''
     def make_boss_map(self, entities, player):
+        """
+        Crée une pièce spécifique pour le combat de boss
+
+        Parametres:
+        ----------
+        entities : list
+
+        player : Entity
+
+
+        Renvoi:
+        -------
+        entities : list
+
+        """
         w = 50
         h = 30
         x = 15

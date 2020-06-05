@@ -1,14 +1,30 @@
 from random import randint
 import numpy as np
 
-'''
+"""
 Ce module gere le taux d'apparation de monstres et d'items
 en fonction de l'etage du donjon en assignant un poids au nombre
 d'apparition en fonction de l'etage
-'''
+"""
 
 
 def monsters_per_room(dungeon_level, monsters_list, room):
+    """
+    Choisit combien de monstres de chaque type faire appraître, en fonction de l'étage actuel
+
+    Parametres:
+    ----------
+    dungeon_level : int
+
+    monsters_list : list
+
+    room : Rect
+
+    Renvoi:
+    -------
+    monsters_to_pop : list
+
+    """
     total_weight = randint(1, int(3 * np.log(dungeon_level) + 1))
     monsters_pop_list = []
     current_weight = 0
@@ -40,9 +56,22 @@ def monsters_per_room(dungeon_level, monsters_list, room):
     return monsters_pop_list
 
 
-# PENSER A LIMITER LE NOMBRE D'ITEM D'UN TYPE DONNE PAR PIECE
-
 def items_per_room(dungeon_level, item_list):
+    """
+    Choisit combien d'items de chaque type faire appraître, en fonction de l'étage actuel
+
+    Parametres:
+    ----------
+    dungeon_level : int
+
+    item_list : list
+
+
+    Renvoi:
+    -------
+    items_to_pop : list
+
+    """
     total_weight = randint(0, int(3 * np.log(dungeon_level) + 1))
     items_pop_list = []
     current_weight = 0

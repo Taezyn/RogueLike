@@ -12,15 +12,27 @@ from map_objects.game_map import GameMap
 from render_functions import RenderOrder
 import sound_manager.sound_manager as sm
 
-'''
+"""
 C'est ici que peuvent etre modifiees toutes les constantes liees a l'affichage,
 a la difficulte du jeu, a la taille de la carte, etc...
 get_constants est appelee a l'ouverture du jeu suive de get_game_variables
-'''
+"""
 
 
 def get_constants():
-    window_title = "Rogue doesn't like"
+    """
+    Permet de charger dans un unique dictionnaire toutes les constantes et paramètres du jeu
+
+    Parametres:
+    ----------
+    Aucun
+
+    Renvoi:
+    -------
+    constants : dict
+
+    """
+    window_title = "Rogue dislike"
 
     screen_width = 80
     screen_height = 50
@@ -101,8 +113,28 @@ def get_constants():
 
 
 def get_game_variables(constants):
-    fighter_component = Fighter(hp=100, defense=50, power=50)
-    inventory_component = Inventory(26)
+    """
+    Crée une nouvelle partie
+
+    Parametres:
+    ----------
+    constants : dict
+
+    Renvoi:
+    -------
+    player : Entity
+
+    entities : list
+
+    game_map : GameMap
+
+    message_log : MessageLog
+
+    game_state : int
+
+    """
+    fighter_component = Fighter(hp=100, defense=1, power=3)
+    inventory_component = Inventory()
     level_component = Level()
     equipment_component = Equipment()
     player = Entity(0, 0, constants.get('graphics').get('player'), libtcod.white, 'Player', blocks=True, render_order=RenderOrder.ACTOR,

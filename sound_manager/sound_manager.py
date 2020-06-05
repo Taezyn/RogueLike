@@ -1,13 +1,25 @@
 import pygame
 import random
 
-'''
+"""
 Ici sont recenses les chemins des differents sons du jeu dans init_son 
 qui sera recupere dans chaque module utilisant un ou plusieurs sons.
-'''
+"""
 
 
 def init_son():
+    """
+    Permet de récuperer le dictionnaire contenant l'adresse de chacune des bandes sons utilisées
+
+    Parametres:
+    ----------
+    Aucun
+
+    Renvoi:
+    -------
+    sons : dict
+
+    """
     sons = {'confuse': ['sound_manager/confuse_sound/confuse_sound_1.wav',
                         'sound_manager/confuse_sound/confuse_sound_2.wav',
                         'sound_manager/confuse_sound/confuse_sound_3.wav'],
@@ -41,42 +53,76 @@ def init_son():
     return sons
 
 
-'''
-Choisit un son aleatoire parmi une liste donnee
-'''
 def choose_sound(L):
+    """
+    Choisi un son aléatoire parmis une liste donnée
+
+    Parametres:
+    ----------
+    L : list
+
+    Renvoi:
+    -------
+    s : Son
+
+    """
     s = Son(random.choice(L))
     return s
 
 
-'''
-Coupe tous les sons en cours de lecture
-'''
 def close_sound():
+    """
+    Coupe tous les sons en cours de lecture
+
+    Parametres:
+    ----------
+    Aucun
+
+    Renvoi:
+    -------
+    Aucun
+
+    """
     pygame.mixer.quit()
 
 
-'''
-Permet de creer un son a mixer
-'''
 class Son:
+    """
+    Crée un son
+    """
     def __init__(self, title):
+        """
+        Initialise un son avec pygame.mixer
+
+        Parametres:
+        ----------
+        title : str
+            chemin d'accès de la bande son
+
+        Renvoi:
+        -------
+        Aucun
+
+        """
         self.title = title
         self.read = False
         self.son = pygame.mixer.Sound(self.title)
 
-    '''
-    Permet de lire un son non joue ou d'arreter de lire un son joue.
-    '''
     def playpause(self):
+        """
+        Lit un son en pause, ou met en pause un son en cours de lecture
+
+        Parametres:
+        ----------
+        Aucun
+
+        Renvoi:
+        -------
+        Aucun
+        """
         if not self.read:
             self.son.play()
             self.read = True
         else:
             self.son.stop()
             self.read = False
-
-if __name__ == '__main__':
-    pygame.mixer.init()
-    s = pygame.mixer.Sound('clean_stage.wav')
-    s.play(loops=-1)
